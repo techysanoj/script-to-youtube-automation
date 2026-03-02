@@ -10,7 +10,6 @@ What makes it dynamic:
   5. Multiple query fallbacks     — tries 3 different queries before giving up
 """
 
-import random
 import time
 from io import BytesIO
 from pathlib import Path
@@ -113,13 +112,6 @@ _DEITY_QUERIES: dict[str, list[str]] = {
     ],
 }
 
-# Extra scene modifiers randomly appended to add variety
-_SCENE_MODS = [
-    "golden light", "divine glow", "ancient temple",
-    "celestial cosmic", "sacred offering", "incense lamp",
-    "festival flowers", "spiritual portrait", "mystical",
-]
-
 # Generic fallback queries when no deity matched
 _GENERIC_QUERIES = [
     "hindu temple golden architecture",
@@ -145,47 +137,40 @@ _FALLBACK_PALETTES = [
 ]
 
 
-def _build_query(prompt: str) -> list[str]:
+def _build_queries(prompt: str) -> list[str]:
     """
-    Build 3 varied search queries from a prompt.
-    Returns a list ordered from most specific to most generic (tried in order).
+    Build 2-3 specific search queries from a prompt.
+    Returns [deity_query_1, deity_query_2, generic_fallback].
+    No randomness — picks the first 2 variations for the deity found.
     """
     prompt_lower = prompt.lower()
     queries = []
 
     for deity, variations in _DEITY_QUERIES.items():
         if deity in prompt_lower:
-            # Pick 2 different random variations for this deity
-            picks = random.sample(variations, min(2, len(variations)))
-            for base in picks:
-                # 60% chance to append a scene modifier for extra variety
-                if random.random() > 0.4:
-                    mod = random.choice(_SCENE_MODS)
-                    queries.append(f"{base} {mod}")
-                else:
-                    queries.append(base)
+            # Take the first 2 variations (most specific/popular for this deity)
+            for base in variations[:2]:
+                queries.append(base)
             break
 
-    # Always add a generic fallback
-    queries.append(random.choice(_GENERIC_QUERIES))
-    return queries
+    # Always add one generic fallback as the 3rd query
+    queries.append(_GENERIC_QUERIES[0])
+    return queries[:3]
 
 
-def _fetch_pexels(query: str, output_path: Path, used_ids: set) -> bool:
+def _fetch_best_image(queries: list[str], output_path: Path, used_ids: set) -> bool:
     """
-    Fetch the highest-quality portrait photo from Pexels.
-    Collects pages 1 + 2 (up to 80 photos), filters out used IDs,
-    then picks the photo with the largest resolution (proxy for most
-    downloaded / highest-quality on the platform).
-    Returns True on success.
+    For each of the 2-3 queries, fetch the top 3 results from page 1.
+    Combine into a pool of up to 9 photos, sort by resolution (highest first),
+    then download the best unused one. No random selection.
     """
     if not PEXELS_API_KEY:
         return False
 
     pool: list = []
+    seen_ids: set = set()
 
-    # Collect pages 1 and 2 into a single pool
-    for page in (1, 2):
+    for query in queries:
         try:
             resp = requests.get(
                 "https://api.pexels.com/v1/search",
@@ -193,27 +178,32 @@ def _fetch_pexels(query: str, output_path: Path, used_ids: set) -> bool:
                 params={
                     "query": query,
                     "orientation": "portrait",
-                    "per_page": 40,   # max per page = 80; 40×2 = 80 candidates
-                    "page": page,
+                    "per_page": 3,   # top 3 from each keyword
+                    "page": 1,
                     "size": "large",
                 },
                 timeout=20,
             )
             if resp.status_code == 200:
-                pool.extend(resp.json().get("photos", []))
+                photos = resp.json().get("photos", [])
+                # Deduplicate across queries
+                for p in photos:
+                    if p["id"] not in seen_ids:
+                        seen_ids.add(p["id"])
+                        pool.append(p)
+                print(f"    '{query}' → {len(photos)} results")
         except Exception as exc:
-            print(f"    Pexels page {page} error: {exc}")
+            print(f"    Pexels error for '{query}': {exc}")
 
-    # Filter already-used photos
+    # Remove already-used photos
     pool = [p for p in pool if p["id"] not in used_ids]
     if not pool:
         return False
 
-    # Sort by resolution (width × height) — largest = highest quality / most downloaded
+    # Sort by resolution — highest quality first, no random
     pool.sort(key=lambda p: p["width"] * p["height"], reverse=True)
 
-    # Try photos starting from the best-quality one
-    for photo in pool[:10]:   # try top 10 in case download fails
+    for photo in pool:
         try:
             img_url = photo["src"]["portrait"]
             img_resp = requests.get(img_url, timeout=30)
@@ -260,16 +250,8 @@ def generate_all_images(prompts: list, run_id: str) -> list[Path]:
         out = image_dir / f"image_{i:02d}.jpg"
         print(f"  [{i + 1}/{len(prompts)}] Fetching image…")
 
-        queries = _build_query(prompt)
-        fetched = False
-
-        for query in queries:
-            print(f"    Query: '{query}'")
-            if _fetch_pexels(query, out, used_ids):
-                fetched = True
-                break
-
-        if not fetched:
+        queries = _build_queries(prompt)
+        if not _fetch_best_image(queries, out, used_ids):
             print(f"    Using gradient fallback")
             out = _fallback_image(i, out)
 
