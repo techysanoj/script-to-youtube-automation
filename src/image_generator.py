@@ -173,16 +173,19 @@ def _build_query(prompt: str) -> list[str]:
 
 def _fetch_pexels(query: str, output_path: Path, used_ids: set) -> bool:
     """
-    Fetch one portrait photo from Pexels.
-    Randomises page number and skips already-used photo IDs.
+    Fetch the highest-quality portrait photo from Pexels.
+    Collects pages 1 + 2 (up to 80 photos), filters out used IDs,
+    then picks the photo with the largest resolution (proxy for most
+    downloaded / highest-quality on the platform).
     Returns True on success.
     """
     if not PEXELS_API_KEY:
         return False
 
-    # Try a random page first, fall back to page 1 if empty
-    pages_to_try = [random.randint(1, 5), 1]
-    for page in pages_to_try:
+    pool: list = []
+
+    # Collect pages 1 and 2 into a single pool
+    for page in (1, 2):
         try:
             resp = requests.get(
                 "https://api.pexels.com/v1/search",
@@ -190,32 +193,39 @@ def _fetch_pexels(query: str, output_path: Path, used_ids: set) -> bool:
                 params={
                     "query": query,
                     "orientation": "portrait",
-                    "per_page": 20,
+                    "per_page": 40,   # max per page = 80; 40×2 = 80 candidates
                     "page": page,
                     "size": "large",
                 },
                 timeout=20,
             )
-            if resp.status_code != 200:
-                continue
+            if resp.status_code == 200:
+                pool.extend(resp.json().get("photos", []))
+        except Exception as exc:
+            print(f"    Pexels page {page} error: {exc}")
 
-            photos = [p for p in resp.json().get("photos", []) if p["id"] not in used_ids]
-            if not photos:
-                continue
+    # Filter already-used photos
+    pool = [p for p in pool if p["id"] not in used_ids]
+    if not pool:
+        return False
 
-            photo = random.choice(photos)
+    # Sort by resolution (width × height) — largest = highest quality / most downloaded
+    pool.sort(key=lambda p: p["width"] * p["height"], reverse=True)
+
+    # Try photos starting from the best-quality one
+    for photo in pool[:10]:   # try top 10 in case download fails
+        try:
             img_url = photo["src"]["portrait"]
-
             img_resp = requests.get(img_url, timeout=30)
             if img_resp.status_code == 200 and len(img_resp.content) > 5_000:
                 img = Image.open(BytesIO(img_resp.content)).convert("RGB")
                 img = img.resize((VIDEO_WIDTH, VIDEO_HEIGHT), Image.LANCZOS)
                 img.save(output_path, "JPEG", quality=95)
-                used_ids.add(photo["id"])   # mark as used
+                used_ids.add(photo["id"])
+                print(f"    Selected: {photo['width']}×{photo['height']}px  (id={photo['id']})")
                 return True
-
         except Exception as exc:
-            print(f"    Pexels error: {exc}")
+            print(f"    Download error: {exc}")
 
     return False
 
