@@ -4,22 +4,25 @@ name: Daily YouTube Shorts Upload
 # OPTIMAL UPLOAD SCHEDULE FOR INDIAN AUDIENCE (IST = UTC + 5:30)
 #
 # Research shows peak YouTube Shorts engagement for Indian viewers:
-#   Slot 1 — Morning  : 7:30 AM IST  = 02:00 UTC  (morning commute / breakfast)
-#   Slot 2 — Evening  : 7:30 PM IST  = 14:00 UTC  (after school/work prime time)
+#   Slot 1 — Morning   : 8:30 AM IST  = 03:00 UTC  (morning commute / breakfast)
+#   Slot 2 — Afternoon : 1:30 PM IST  = 08:00 UTC  (lunch break browsing)
+#   Slot 3 — Evening   : 7:30 PM IST  = 14:00 UTC  (golden window — after work/school)
 #
-# Why two separate runs instead of one run with 2 videos:
+# Why three separate runs instead of one bulk run:
 #   - YouTube rewards consistent upload frequency over bulk uploads
-#   - Spreading uploads lets algorithm push each video independently
-#   - More chances to hit trending at different times of day
+#   - Each video gets pushed independently by the algorithm
+#   - Covers all three peak engagement windows for maximum reach
 #
-# Total: 2 videos per day, 1 per run
+# Total: 3 videos per day, 1 per run
 # ─────────────────────────────────────────────────────────────────────────────
 
 on:
   schedule:
-    # Slot 1: 7:30 AM IST  (02:00 UTC) — morning audience
-    - cron: "0 2 * * *"
-    # Slot 2: 7:30 PM IST  (14:00 UTC) — evening prime time
+    # Slot 1: 8:30 AM IST  (03:00 UTC) — morning commute / breakfast
+    - cron: "0 3 * * *"
+    # Slot 2: 1:30 PM IST  (08:00 UTC) — afternoon lunch break
+    - cron: "0 8 * * *"
+    # Slot 3: 7:30 PM IST  (14:00 UTC) — evening golden window (prime time)
     - cron: "0 14 * * *"
   workflow_dispatch:   # Allow manual trigger from GitHub Actions tab
 
