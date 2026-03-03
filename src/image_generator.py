@@ -158,11 +158,24 @@ def _build_queries(prompt: str) -> list[str]:
     return queries[:3]
 
 
-def _fetch_best_image(queries: list[str], output_path: Path, used_ids: set) -> bool:
+def _download_and_save(url: str, output_path: Path) -> bool:
+    """Download an image URL, resize to portrait, save. Returns True on success."""
+    try:
+        resp = requests.get(url, timeout=30)
+        if resp.status_code == 200 and len(resp.content) > 5_000:
+            img = Image.open(BytesIO(resp.content)).convert("RGB")
+            img = img.resize((VIDEO_WIDTH, VIDEO_HEIGHT), Image.LANCZOS)
+            img.save(output_path, "JPEG", quality=95)
+            return True
+    except Exception as exc:
+        print(f"    Download error: {exc}")
+    return False
+
+
+def _fetch_pexels(queries: list[str], output_path: Path, used_ids: set) -> bool:
     """
-    For each of the 2-3 queries, fetch the top 3 results from page 1.
-    Combine into a pool of up to 9 photos, sort by resolution (highest first),
-    then download the best unused one. No random selection.
+    Fallback image source — Pexels stock photos.
+    Used only when Pixabay returns nothing usable.
     """
     if not PEXELS_API_KEY:
         return False
@@ -178,7 +191,7 @@ def _fetch_best_image(queries: list[str], output_path: Path, used_ids: set) -> b
                 params={
                     "query": query,
                     "orientation": "portrait",
-                    "per_page": 3,   # top 3 from each keyword
+                    "per_page": 3,
                     "page": 1,
                     "size": "large",
                 },
@@ -186,36 +199,26 @@ def _fetch_best_image(queries: list[str], output_path: Path, used_ids: set) -> b
             )
             if resp.status_code == 200:
                 photos = resp.json().get("photos", [])
-                # Deduplicate across queries
                 for p in photos:
                     if p["id"] not in seen_ids:
                         seen_ids.add(p["id"])
                         pool.append(p)
-                print(f"    '{query}' → {len(photos)} results")
+                print(f"    [Pexels] '{query}' → {len(photos)} results")
         except Exception as exc:
-            print(f"    Pexels error for '{query}': {exc}")
+            print(f"    [Pexels] error for '{query}': {exc}")
 
-    # Remove already-used photos
     pool = [p for p in pool if p["id"] not in used_ids]
     if not pool:
         return False
 
-    # Sort by resolution — highest quality first, no random
     pool.sort(key=lambda p: p["width"] * p["height"], reverse=True)
 
     for photo in pool:
-        try:
-            img_url = photo["src"]["portrait"]
-            img_resp = requests.get(img_url, timeout=30)
-            if img_resp.status_code == 200 and len(img_resp.content) > 5_000:
-                img = Image.open(BytesIO(img_resp.content)).convert("RGB")
-                img = img.resize((VIDEO_WIDTH, VIDEO_HEIGHT), Image.LANCZOS)
-                img.save(output_path, "JPEG", quality=95)
-                used_ids.add(photo["id"])
-                print(f"    Selected: {photo['width']}×{photo['height']}px  (id={photo['id']})")
-                return True
-        except Exception as exc:
-            print(f"    Download error: {exc}")
+        url = photo["src"]["portrait"]
+        if _download_and_save(url, output_path):
+            used_ids.add(photo["id"])
+            print(f"    [Pexels] Selected: {photo['width']}×{photo['height']}px  (id={photo['id']})")
+            return True
 
     return False
 
@@ -236,7 +239,7 @@ def _fallback_image(index: int, output_path: Path) -> Path:
 
 
 def generate_all_images(prompts: list, run_id: str) -> list[Path]:
-    """Fetch all images for a video with maximum variety."""
+    """Fetch all images for a video. Tries Pexels → gradient fallback."""
     if not PEXELS_API_KEY:
         print("  [WARN] PEXELS_API_KEY not set — all images will be gradients.")
 
@@ -251,7 +254,8 @@ def generate_all_images(prompts: list, run_id: str) -> list[Path]:
         print(f"  [{i + 1}/{len(prompts)}] Fetching image…")
 
         queries = _build_queries(prompt)
-        if not _fetch_best_image(queries, out, used_ids):
+
+        if not _fetch_pexels(queries, out, used_ids):
             print(f"    Using gradient fallback")
             out = _fallback_image(i, out)
 

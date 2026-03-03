@@ -6,11 +6,35 @@ Script Generator — uses Gemini 1.5 Flash (free tier) to generate:
 """
 
 import json
+import random
+import datetime
+from pathlib import Path
 from google import genai
 from google.genai import types
 from config import GEMINI_API_KEY, IMAGES_PER_VIDEO
 
 _client = genai.Client(api_key=GEMINI_API_KEY)
+
+# ── Content history — tracks last N deity+theme combos to prevent repetition ──
+_HISTORY_FILE = Path(__file__).parent.parent / "content_history.json"
+_MAX_HISTORY = 15   # remember last 15 videos
+
+
+def _load_history() -> list[str]:
+    if _HISTORY_FILE.exists():
+        try:
+            return json.loads(_HISTORY_FILE.read_text(encoding="utf-8"))
+        except Exception:
+            return []
+    return []
+
+
+def _save_to_history(history: list[str], entry: str) -> None:
+    history.append(entry)
+    _HISTORY_FILE.write_text(
+        json.dumps(history[-_MAX_HISTORY:], ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
 
 _SYSTEM_PROMPT = f"""You are an expert Indian YouTube Shorts creator and Hindi SEO specialist \
 creating viral Hindu spirituality content for Indian audiences.
@@ -34,7 +58,16 @@ LANGUAGE: Pure Hindi in Devanagari script ONLY (देवनागरी). No Ro
 LENGTH: 50-60 characters max (Devanagari chars count more — keep it short and punchy).
 KEYWORD PLACEMENT: Lead with the primary keyword (deity name + topic) in the FIRST 3 words —
   YouTube reads titles left-to-right for ranking, front-loaded keywords rank higher.
-STRUCTURE: [Primary Keyword: Deity + Topic] + [Emotional Hook / Curiosity Gap] + #Shorts
+STRUCTURE: [Primary Keyword: Deity + Topic] + [Emotional Hook / Curiosity Gap] + [2-3 Hashtags]
+
+HASHTAGS IN TITLE — always 2-3 hashtags at the END of the title:
+  1. #Shorts — MANDATORY first (triggers YouTube Shorts discovery algorithm)
+  2. #[Deity hashtag] — MANDATORY, match the deity of this video:
+       Shiva → #Mahadev   |  Krishna → #Krishna  |  Ganesha → #Ganesha
+       Hanuman → #Hanuman |  Durga → #Durga       |  Lakshmi → #Lakshmi
+       Ram → #JaiShriRam  |  Vishnu → #Vishnu     |  Saraswati → #Saraswati
+  3. #[Topic hashtag] — OPTIONAL, only add if space allows (title stays ≤60 chars):
+       #Bhakti | #Spiritual | #Motivation | #HinduGod | #DivineBlessing
 
 HOOK PATTERNS (pick one, place AFTER the keyword):
   "...जो आपने कभी नहीं सुना", "...एक बार ज़रूर सुनो", "...यह सुनकर रो पड़ोगे",
@@ -45,16 +78,18 @@ POWER WORDS that boost CTR (use in Devanagari):
 
 DEITY NAMES in Devanagari: शिव, कृष्ण, गणेश, दुर्गा, लक्ष्मी, विष्णु, हनुमान, राम, सरस्वती
 
-GOOD TITLE EXAMPLES (front-loaded keyword first):
-  "शिव का यह रहस्य सुनकर रो पड़ोगे 🙏 #Shorts"
-  "गणेश जी की शक्ति — बस एक बार यह बोलो, चमत्कार होगा #Shorts"
-  "कृष्ण का वचन जो मुश्किलें खत्म कर देगा #Shorts"
-  "महादेव का यह सच आपकी ज़िंदगी बदल देगा ✨ #Shorts"
-  "हनुमान जी की भक्ति का यह अद्भुत रहस्य #Shorts"
+GOOD TITLE EXAMPLES (2-3 hashtags at end):
+  "शिव का यह रहस्य सुनकर रो पड़ोगे 🙏 #Shorts #Mahadev"
+  "गणेश जी की शक्ति — बस एक बार यह बोलो #Shorts #Ganesha #Bhakti"
+  "कृष्ण का वचन जो मुश्किलें खत्म कर देगा #Shorts #Krishna"
+  "महादेव का यह सच आपकी ज़िंदगी बदल देगा ✨ #Shorts #Mahadev #Spiritual"
+  "हनुमान जी की भक्ति का यह अद्भुत रहस्य #Shorts #Hanuman #Bhakti"
 
 RULES:
-- End ALWAYS with #Shorts (required for YouTube Shorts algorithm discovery)
-- Only 1-2 emojis max — place naturally, not spam
+- #Shorts ALWAYS comes first in the hashtag group (most important for algorithm)
+- #[Deity] ALWAYS second — deity-specific hashtag gets subscriber reach
+- 3rd hashtag ONLY if title stays under 60 characters after adding it
+- Only 1-2 emojis max — place naturally before the hashtags
 - NO all-caps, NO excessive punctuation (!!!), NO clickbait lies
 - Title must MATCH the actual video content — mismatched metadata triggers algorithmic penalties
 - Each title must be UNIQUE — different deity, different hook, different theme every video
@@ -78,8 +113,17 @@ ENDING (1-2 sentences — powerful close):
 - Reaffirm the blessing, then deity battle cry
 - "Unka ashirwad hamesha hamare saath hai. Jai Mahadev!" / "Jai Shri Ram!" / "Jai Mata Di!"
 
-Script language: HINGLISH — Roman script, Hindi-dominant, simple English words allowed.
-NO Devanagari in script. NO pure English sentences. Conversational, like talking to a friend.
+Script language: MIXED-SCRIPT HINGLISH
+- Hindi / Urdu words → write in Devanagari script (देवनागरी)
+- English words that have no natural Hindi equivalent → keep in Latin/English script
+- No full Roman transliteration of Hindi words (e.g. write "जानते" not "jaante")
+- The TTS voice is hi-IN-SwaraNeural — it reads Devanagari natively and handles English words naturally
+- Conversational, like a friend talking — natural code-mixing as real Indians speak
+
+MIXED-SCRIPT EXAMPLE (correct format):
+  "क्या आप जानते हैं — Shiva ने एक बार पूरी duniya को रोक दिया था?
+   जब life में मुश्किलें आती हैं, वो हमें तोड़ती नहीं — बल्कि और strong बनाती हैं।
+   उनका आशीर्वाद हमेशा हमारे साथ है। जय महादेव!"
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 DESCRIPTION RULES — Hindi Devanagari, YouTube SEO 2026:
@@ -143,10 +187,36 @@ ALL metadata (title, description, tags) must be contextually consistent with eac
 
 
 def generate_video_content() -> dict:
-    """Generate complete video content using Gemini 2.0 Flash."""
+    """Generate complete video content using Gemini 2.5 Flash.
+
+    Uses a history file to avoid repeating deity+theme combos and injects
+    a unique session seed so the model cannot return a cached response.
+    """
+    history = _load_history()
+
+    # Build the avoid-list from the last 5 entries (most recent = most important)
+    avoid_list = history[-5:] if history else []
+    avoid_str = "; ".join(avoid_list) if avoid_list else "none yet"
+
+    # Unique seed — date + time + random int — forces a fresh generation every call
+    session_seed = (
+        f"{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | "
+        f"seed={random.randint(100_000, 999_999)}"
+    )
+
+    user_prompt = (
+        f"Session: {session_seed}\n"
+        f"Recently used deity+theme combos (DO NOT repeat any of these):\n"
+        f"  {avoid_str}\n\n"
+        f"Generate completely fresh content with a DIFFERENT deity and DIFFERENT theme now."
+    )
+
     response = _client.models.generate_content(
         model="gemini-2.5-flash",
-        contents=_SYSTEM_PROMPT,
+        contents=[
+            types.Content(role="user", parts=[types.Part(text=_SYSTEM_PROMPT)]),
+            types.Content(role="user", parts=[types.Part(text=user_prompt)]),
+        ],
         config=types.GenerateContentConfig(
             temperature=0.95,
             max_output_tokens=8192,
@@ -178,5 +248,9 @@ def generate_video_content() -> dict:
     while len(prompts) < IMAGES_PER_VIDEO:
         prompts.append(prompts[-1] if prompts else "Lord Ganesha divine portrait, golden light, 9:16")
     content["image_prompts"] = prompts[:IMAGES_PER_VIDEO]
+
+    # Save this generation to history so future runs avoid it
+    title = content.get("title", "unknown")
+    _save_to_history(history, f"{datetime.datetime.now().strftime('%Y-%m-%d')} | {title}")
 
     return content

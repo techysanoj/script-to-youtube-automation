@@ -5,8 +5,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # ── API Keys ──────────────────────────────────────────────────────────────────
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-PEXELS_API_KEY = os.getenv("PEXELS_API_KEY", "")
+GEMINI_API_KEY  = os.getenv("GEMINI_API_KEY", "")
+PEXELS_API_KEY  = os.getenv("PEXELS_API_KEY", "")
 
 # ── YouTube OAuth ─────────────────────────────────────────────────────────────
 YOUTUBE_CLIENT_SECRETS_FILE = os.getenv("YOUTUBE_CLIENT_SECRETS_FILE", "client_secrets.json")
@@ -23,7 +23,7 @@ VIDEO_WIDTH = 1080
 VIDEO_HEIGHT = 1920
 VIDEO_FPS = 24
 IMAGE_DURATION = 5.0      # seconds per image clip
-BG_MUSIC_VOLUME = 0.15    # 15% — background music under voiceover
+BG_MUSIC_VOLUME = 0.35    # 35% — background music under voiceover
 
 # ── Content Settings ──────────────────────────────────────────────────────────
 VIDEOS_PER_RUN = int(os.getenv("VIDEOS_PER_RUN", "2"))
