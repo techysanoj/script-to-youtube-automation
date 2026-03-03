@@ -54,7 +54,8 @@ jobs:
             fonts-liberation \
             fonts-noto \
             fonts-noto-core \
-            fonts-noto-cjk
+            fonts-noto-cjk \
+            fonts-noto-extra
 
       # ── Python deps ───────────────────────────────────────────────────────────
       - name: Install Python dependencies
