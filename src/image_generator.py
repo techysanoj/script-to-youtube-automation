@@ -1,13 +1,15 @@
 """
-Image Generator — dynamic Pexels image fetching.
+Image Generator — Wikimedia Commons → Unsplash → Pexels fallback chain.
 
-What makes it dynamic:
-  1. Per-deity search variations  — each deity has 5-7 different query angles
-     (meditation, cosmic, battle, blessing, festival, close-up, wide…)
-  2. Random Pexels page           — pages 1-5 so we don't always get the same top photos
-  3. Scene modifiers appended     — "golden light", "ancient temple", "celestial" etc.
-  4. Used-photo deduplication     — tracks photo IDs within a single video run
-  5. Multiple query fallbacks     — tries 3 different queries before giving up
+Gemini provides 5 two-word search terms.
+We fetch 2 images per term (up to 10 total) and return the first
+IMAGES_PER_VIDEO (8) results.
+
+Source priority for each image slot:
+  1. Wikimedia Commons  (free, no key — rich Hindu deity art + illustrations)
+  2. Unsplash           (free Access Key — high quality photography)
+  3. Pexels             (free key — good general stock photos)
+  4. Gradient           (last-resort Pillow fallback)
 """
 
 import time
@@ -17,116 +19,14 @@ from pathlib import Path
 import requests
 from PIL import Image, ImageDraw
 
-from config import VIDEO_WIDTH, VIDEO_HEIGHT, TEMP_DIR, PEXELS_API_KEY
+from config import (
+    VIDEO_WIDTH, VIDEO_HEIGHT, TEMP_DIR,
+    UNSPLASH_ACCESS_KEY, PEXELS_API_KEY, IMAGES_PER_VIDEO,
+)
 
-# ── Rich per-deity query variations ──────────────────────────────────────────
-_DEITY_QUERIES: dict[str, list[str]] = {
-    "shiva": [
-        "lord shiva meditation",
-        "shiva cosmic dance tandav",
-        "mahadev shiva third eye",
-        "shiva mount kailash",
-        "shiva lingam temple offering",
-        "lord shiva ascetic yogi",
-        "shiva destroyer transformation",
-    ],
-    "krishna": [
-        "lord krishna flute divine",
-        "krishna radha love spiritual",
-        "krishna warrior bhagavad gita",
-        "krishna childhood butter pot",
-        "krishna peacock feather portrait",
-        "krishna cosmic vishwaroop",
-        "krishna devotion bhakti",
-    ],
-    "ganesha": [
-        "lord ganesha golden statue",
-        "ganesha elephant god blessing",
-        "ganesha festival celebration",
-        "ganesha wisdom prosperity",
-        "ganesh chaturthi idol",
-        "ganesha om sacred",
-    ],
-    "durga": [
-        "goddess durga warrior lion",
-        "durga navratri festival",
-        "goddess shakti powerful divine",
-        "durga mahishasura battle",
-        "durga temple offerings lamp",
-        "navdurga nine forms",
-    ],
-    "lakshmi": [
-        "goddess lakshmi lotus gold",
-        "lakshmi diwali prosperity",
-        "goddess wealth abundance flowers",
-        "lakshmi four hands divine",
-        "lakshmi temple offering",
-    ],
-    "vishnu": [
-        "lord vishnu preserver cosmic",
-        "vishnu blue divine four arms",
-        "vishnu avatar dashavatara",
-        "vishnu ocean serpent ananta",
-        "vishnu vaikunta celestial",
-    ],
-    "hanuman": [
-        "lord hanuman devotion bhakti",
-        "hanuman flying mountain",
-        "hanuman strength warrior",
-        "hanuman ram devotee",
-        "hanuman anjali pose",
-        "hanuman chalisa sacred",
-    ],
-    "rama": [
-        "lord rama bow arrow warrior",
-        "ram sita divine couple",
-        "dussehra rama victory",
-        "ram navami celebration",
-        "rama ayodhya temple",
-    ],
-    "saraswati": [
-        "goddess saraswati veena music",
-        "saraswati knowledge learning",
-        "saraswati vasant panchami",
-        "goddess wisdom white swan",
-    ],
-    "brahma": [
-        "lord brahma creator four heads",
-        "brahma lotus creation",
-        "brahma temple pushkar",
-    ],
-    "kali": [
-        "goddess kali powerful divine",
-        "kali ma fierce shakti",
-        "kali puja festival",
-    ],
-    "parvati": [
-        "goddess parvati divine mother",
-        "parvati shiva family",
-        "parvati beauty sacred",
-    ],
-    "murugan": [
-        "lord murugan vel warrior",
-        "murugan tamilnadu temple",
-        "murugan peacock kavadi",
-    ],
-}
-
-# Generic fallback queries when no deity matched
-_GENERIC_QUERIES = [
-    "hindu temple golden architecture",
-    "india spiritual devotion",
-    "diwali festival lights celebration",
-    "indian classical dance sacred",
-    "yoga meditation sunrise spiritual",
-    "hindu ritual puja lamp",
-    "india religious festival colorful",
-    "ancient indian sculpture stone",
-]
-
-# Saffron-themed fallback palettes
+# Saffron-themed gradient fallback palettes
 _FALLBACK_PALETTES = [
-    [(255, 140, 0),  (200, 60,  0)],
+    [(255, 140, 0),   (200, 60,  0)],
     [(75,  0,   130), (148, 0,  211)],
     [(0,   80,  160), (0,  160, 220)],
     [(139, 0,   0),   (220, 20,  60)],
@@ -136,95 +36,28 @@ _FALLBACK_PALETTES = [
     [(20,  60,  100), (100, 180, 255)],
 ]
 
-
-def _build_queries(prompt: str) -> list[str]:
-    """
-    Build 2-3 specific search queries from a prompt.
-    Returns [deity_query_1, deity_query_2, generic_fallback].
-    No randomness — picks the first 2 variations for the deity found.
-    """
-    prompt_lower = prompt.lower()
-    queries = []
-
-    for deity, variations in _DEITY_QUERIES.items():
-        if deity in prompt_lower:
-            # Take the first 2 variations (most specific/popular for this deity)
-            for base in variations[:2]:
-                queries.append(base)
-            break
-
-    # Always add one generic fallback as the 3rd query
-    queries.append(_GENERIC_QUERIES[0])
-    return queries[:3]
+_HEADERS = {"User-Agent": "YTShortsBot/1.0"}
 
 
-def _download_and_save(url: str, output_path: Path) -> bool:
-    """Download an image URL, resize to portrait, save. Returns True on success."""
+# ── Shared helpers ─────────────────────────────────────────────────────────────
+
+def _download_and_save(url: str, output_path: Path, extra_headers: dict | None = None) -> bool:
+    """Download an image URL, resize to portrait 9:16, save as JPEG. Returns True on success."""
     try:
-        resp = requests.get(url, timeout=30)
+        h = {**_HEADERS, **(extra_headers or {})}
+        resp = requests.get(url, headers=h, timeout=30)
         if resp.status_code == 200 and len(resp.content) > 5_000:
             img = Image.open(BytesIO(resp.content)).convert("RGB")
             img = img.resize((VIDEO_WIDTH, VIDEO_HEIGHT), Image.LANCZOS)
             img.save(output_path, "JPEG", quality=95)
             return True
     except Exception as exc:
-        print(f"    Download error: {exc}")
-    return False
-
-
-def _fetch_pexels(queries: list[str], output_path: Path, used_ids: set) -> bool:
-    """
-    Fallback image source — Pexels stock photos.
-    Used only when Pixabay returns nothing usable.
-    """
-    if not PEXELS_API_KEY:
-        return False
-
-    pool: list = []
-    seen_ids: set = set()
-
-    for query in queries:
-        try:
-            resp = requests.get(
-                "https://api.pexels.com/v1/search",
-                headers={"Authorization": PEXELS_API_KEY},
-                params={
-                    "query": query,
-                    "orientation": "portrait",
-                    "per_page": 3,
-                    "page": 1,
-                    "size": "large",
-                },
-                timeout=20,
-            )
-            if resp.status_code == 200:
-                photos = resp.json().get("photos", [])
-                for p in photos:
-                    if p["id"] not in seen_ids:
-                        seen_ids.add(p["id"])
-                        pool.append(p)
-                print(f"    [Pexels] '{query}' → {len(photos)} results")
-        except Exception as exc:
-            print(f"    [Pexels] error for '{query}': {exc}")
-
-    pool = [p for p in pool if p["id"] not in used_ids]
-    if not pool:
-        return False
-
-    pool.sort(key=lambda p: p["width"] * p["height"], reverse=True)
-
-    for photo in pool:
-        url = photo["src"]["portrait"]
-        if _download_and_save(url, output_path):
-            used_ids.add(photo["id"])
-            print(f"    [Pexels] Selected: {photo['width']}×{photo['height']}px  (id={photo['id']})")
-            return True
-
+        print(f"      Download error: {exc}")
     return False
 
 
 def _fallback_image(index: int, output_path: Path) -> Path:
-    """Last-resort gradient fallback using Pillow."""
+    """Last-resort gradient image using Pillow."""
     colors = _FALLBACK_PALETTES[index % len(_FALLBACK_PALETTES)]
     img = Image.new("RGB", (VIDEO_WIDTH, VIDEO_HEIGHT))
     draw = ImageDraw.Draw(img)
@@ -238,29 +71,221 @@ def _fallback_image(index: int, output_path: Path) -> Path:
     return output_path
 
 
-def generate_all_images(prompts: list, run_id: str) -> list[Path]:
-    """Fetch all images for a video. Tries Pexels → gradient fallback."""
-    if not PEXELS_API_KEY:
-        print("  [WARN] PEXELS_API_KEY not set — all images will be gradients.")
+# ── Source 1: Wikimedia Commons ────────────────────────────────────────────────
 
+def _fetch_wikimedia(
+    query: str, image_dir: Path, start_idx: int, needed: int, used_ids: set
+) -> list[Path]:
+    """Fetch up to `needed` images from Wikimedia Commons (no API key required)."""
+    paths: list[Path] = []
+    try:
+        # Step 1: search File namespace (ns=6) for matching titles
+        search = requests.get(
+            "https://commons.wikimedia.org/w/api.php",
+            params={
+                "action": "query",
+                "list": "search",
+                "srsearch": query,
+                "srnamespace": 6,
+                "srlimit": needed * 4,
+                "format": "json",
+            },
+            headers=_HEADERS,
+            timeout=20,
+        )
+        if search.status_code != 200:
+            return []
+        results = search.json().get("query", {}).get("search", [])
+        titles = [r["title"] for r in results if r["title"] not in used_ids]
+        if not titles:
+            return []
+
+        # Step 2: batch-fetch image URLs + mime types
+        info = requests.get(
+            "https://commons.wikimedia.org/w/api.php",
+            params={
+                "action": "query",
+                "titles": "|".join(titles[: needed * 3]),
+                "prop": "imageinfo",
+                "iiprop": "url|size|mime",
+                "iiurlwidth": VIDEO_WIDTH,
+                "format": "json",
+            },
+            headers=_HEADERS,
+            timeout=20,
+        )
+        if info.status_code != 200:
+            return []
+
+        pages = info.json().get("query", {}).get("pages", {}).values()
+        for page in pages:
+            if len(paths) >= needed:
+                break
+            if page.get("pageid", -1) < 0:   # missing page
+                continue
+            title = page.get("title", "")
+            if title in used_ids:
+                continue
+            info_list = page.get("imageinfo", [])
+            if not info_list:
+                continue
+            ii = info_list[0]
+            if ii.get("mime", "") not in ("image/jpeg", "image/png", "image/webp"):
+                continue
+            url = ii.get("thumburl") or ii.get("url")
+            if not url:
+                continue
+            out = image_dir / f"image_{start_idx + len(paths):02d}.jpg"
+            if _download_and_save(url, out):
+                used_ids.add(title)
+                paths.append(out)
+                print(f"      [Wikimedia] {title[5:55]}")   # strip "File:" prefix
+
+    except Exception as exc:
+        print(f"      [Wikimedia] error: {exc}")
+
+    return paths
+
+
+# ── Source 2: Unsplash ─────────────────────────────────────────────────────────
+
+def _fetch_unsplash(
+    query: str, image_dir: Path, start_idx: int, needed: int, used_ids: set
+) -> list[Path]:
+    """Fetch up to `needed` images from Unsplash (requires Access Key)."""
+    if not UNSPLASH_ACCESS_KEY:
+        return []
+    paths: list[Path] = []
+    try:
+        resp = requests.get(
+            "https://api.unsplash.com/search/photos",
+            params={
+                "query": query,
+                "orientation": "portrait",
+                "per_page": needed * 2,
+                "client_id": UNSPLASH_ACCESS_KEY,
+            },
+            headers=_HEADERS,
+            timeout=20,
+        )
+        if resp.status_code != 200:
+            print(f"      [Unsplash] HTTP {resp.status_code}")
+            return []
+        photos = [p for p in resp.json().get("results", []) if p["id"] not in used_ids]
+        for photo in photos:
+            if len(paths) >= needed:
+                break
+            url = photo["urls"]["regular"]   # ~1080px wide
+            out = image_dir / f"image_{start_idx + len(paths):02d}.jpg"
+            if _download_and_save(url, out):
+                used_ids.add(photo["id"])
+                paths.append(out)
+                print(f"      [Unsplash] id={photo['id']}")
+                # Trigger download tracking as required by Unsplash API guidelines
+                try:
+                    requests.get(
+                        f"https://api.unsplash.com/photos/{photo['id']}/download",
+                        params={"client_id": UNSPLASH_ACCESS_KEY},
+                        headers=_HEADERS,
+                        timeout=5,
+                    )
+                except Exception:
+                    pass
+
+    except Exception as exc:
+        print(f"      [Unsplash] error: {exc}")
+
+    return paths
+
+
+# ── Source 3: Pexels ───────────────────────────────────────────────────────────
+
+def _fetch_pexels(
+    query: str, image_dir: Path, start_idx: int, needed: int, used_ids: set
+) -> list[Path]:
+    """Fetch up to `needed` images from Pexels (requires API key)."""
+    if not PEXELS_API_KEY:
+        return []
+    paths: list[Path] = []
+    try:
+        resp = requests.get(
+            "https://api.pexels.com/v1/search",
+            headers={"Authorization": PEXELS_API_KEY},
+            params={
+                "query": query,
+                "orientation": "portrait",
+                "per_page": needed * 2,
+                "page": 1,
+                "size": "large",
+            },
+            timeout=20,
+        )
+        if resp.status_code != 200:
+            return []
+        photos = [p for p in resp.json().get("photos", []) if p["id"] not in used_ids]
+        photos.sort(key=lambda p: p["width"] * p["height"], reverse=True)
+        for photo in photos:
+            if len(paths) >= needed:
+                break
+            url = photo["src"]["portrait"]
+            out = image_dir / f"image_{start_idx + len(paths):02d}.jpg"
+            if _download_and_save(url, out):
+                used_ids.add(photo["id"])
+                paths.append(out)
+                print(f"      [Pexels] id={photo['id']}")
+
+    except Exception as exc:
+        print(f"      [Pexels] error: {exc}")
+
+    return paths
+
+
+# ── Main entry point ───────────────────────────────────────────────────────────
+
+def generate_all_images(search_terms: list[str], run_id: str) -> list[Path]:
+    """Fetch 2 images per search term using Wikimedia → Unsplash → Pexels.
+
+    5 terms × 2 images = up to 10 fetched; returns first IMAGES_PER_VIDEO (8).
+    Any remaining slots are filled with gradient fallbacks.
+    """
     image_dir = TEMP_DIR / run_id / "images"
     image_dir.mkdir(parents=True, exist_ok=True)
 
-    used_ids: set = set()   # prevent duplicate photos within one video
-    paths = []
+    used_ids: set = set()
+    all_paths: list[Path] = []
 
-    for i, prompt in enumerate(prompts):
-        out = image_dir / f"image_{i:02d}.jpg"
-        print(f"  [{i + 1}/{len(prompts)}] Fetching image…")
+    for term in search_terms:
+        if len(all_paths) >= IMAGES_PER_VIDEO:
+            break
 
-        queries = _build_queries(prompt)
+        needed = min(2, IMAGES_PER_VIDEO - len(all_paths))
+        start_idx = len(all_paths)
+        print(f"  Searching '{term}' (need {needed})…")
 
-        if not _fetch_pexels(queries, out, used_ids):
-            print(f"    Using gradient fallback")
-            out = _fallback_image(i, out)
+        batch: list[Path] = []
 
-        paths.append(out)
-        if i < len(prompts) - 1:
-            time.sleep(0.3)
+        # 1. Wikimedia Commons
+        batch += _fetch_wikimedia(term, image_dir, start_idx + len(batch), needed - len(batch), used_ids)
 
-    return paths
+        # 2. Unsplash (if still short)
+        if len(batch) < needed:
+            batch += _fetch_unsplash(term, image_dir, start_idx + len(batch), needed - len(batch), used_ids)
+
+        # 3. Pexels (if still short)
+        if len(batch) < needed:
+            batch += _fetch_pexels(term, image_dir, start_idx + len(batch), needed - len(batch), used_ids)
+
+        all_paths.extend(batch)
+        print(f"    → {len(batch)}/{needed} images fetched")
+
+        if len(all_paths) < IMAGES_PER_VIDEO:
+            time.sleep(0.4)
+
+    # Gradient fallback for any remaining slots
+    while len(all_paths) < IMAGES_PER_VIDEO:
+        idx = len(all_paths)
+        out = image_dir / f"image_{idx:02d}.jpg"
+        print(f"  [{idx + 1}] Gradient fallback")
+        all_paths.append(_fallback_image(idx, out))
+
+    return all_paths[:IMAGES_PER_VIDEO]

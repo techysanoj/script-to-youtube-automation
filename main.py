@@ -22,7 +22,6 @@ import argparse
 import shutil
 import time
 from datetime import datetime, timezone
-from pathlib import Path
 
 from config import VIDEOS_PER_RUN, TEMP_DIR
 from src.script_generator import generate_video_content
@@ -56,8 +55,8 @@ def run_pipeline(video_index: int, stop_after: int = 6) -> dict:
             return {"run_id": run_id, "stopped_at": 1, "title": content["title"]}
 
         # ── 2. Images ─────────────────────────────────────────────────────────
-        print(f"\n[2/6] Fetching {len(content['image_prompts'])} images (Pexels)…")
-        image_paths = generate_all_images(content["image_prompts"], run_id)
+        print(f"\n[2/6] Fetching images ({len(content['search_terms'])} terms × 2 = up to 10, using first 8)…")
+        image_paths = generate_all_images(content["search_terms"], run_id)
         if not image_paths:
             raise RuntimeError("Image generation returned no usable files.")
         print(f"  {len(image_paths)} images ready.")

@@ -11,7 +11,7 @@ import datetime
 from pathlib import Path
 from google import genai
 from google.genai import types
-from config import GEMINI_API_KEY, IMAGES_PER_VIDEO
+from config import GEMINI_API_KEY
 
 _client = genai.Client(api_key=GEMINI_API_KEY)
 
@@ -43,9 +43,12 @@ Return ONLY valid JSON — no markdown fences, no extra text — in this exact s
 {{
   "title": "Title in pure Hindi Devanagari script (SEO rules below)",
   "script": "40-second Hinglish voiceover script (rules below)",
-  "image_prompts": [
-    "Detailed English prompt for AI image 1 (portrait 9:16, cinematic, ultra-detailed)",
-    "... ({IMAGES_PER_VIDEO} prompts total)"
+  "search_terms": [
+    "deity scene1",
+    "deity scene2",
+    "deity scene3",
+    "temple word1",
+    "india word2"
   ],
   "description": "YouTube description in Hindi Devanagari (SEO rules below)",
   "tags": ["8-12 highly specific SEO tags — rules below"]
@@ -175,12 +178,23 @@ Tags must be strings WITHOUT # symbol — YouTube API tags field does not use #.
 Generate 8-12 tags total, all specific to THIS video's deity and theme.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-IMAGE PROMPT RULES (always in English for best results):
+SEARCH TERMS RULES (used to search Wikimedia, Unsplash, Pexels):
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-- Portrait 9:16, photorealistic or divine illustration
-- Vary deities each video: Shiva, Vishnu, Ganesha, Durga, Lakshmi, Krishna, Rama, Hanuman, Saraswati
-- Style: "divine golden light, ethereal glow, majestic, ultra-detailed, 8k, cinematic, sacred"
-- Each of the {IMAGES_PER_VIDEO} prompts must show a DIFFERENT scene/angle
+Generate EXACTLY 5 search terms. Each term must be EXACTLY 2 English words.
+These will be sent to real stock photo APIs — short, specific terms work best.
+
+RULES:
+- 2 words ONLY per term — APIs match better with concise phrases
+- English only — Wikimedia, Unsplash and Pexels are English-indexed
+- Use deity's English name (e.g. "shiva", "krishna", "hanuman") as word 1 for 3 terms
+- Word 2 should show a DIFFERENT visual angle: meditation, temple, festival, portrait, devotion
+- Include 1-2 generic spiritual fallbacks: "temple worship", "diwali lights", "india spiritual"
+
+GOOD EXAMPLES:
+  Shiva video   → ["shiva meditation", "shiva temple", "shiva cosmic", "temple incense", "india spiritual"]
+  Krishna video → ["krishna flute", "krishna devotion", "temple worship", "india festival", "radha krishna"]
+  Durga video   → ["durga goddess", "navratri festival", "temple offerings", "india devotion", "diwali lights"]
+  Hanuman video → ["hanuman devotion", "hanuman temple", "india bhakti", "temple worship", "ram hanuman"]
 
 Generate completely fresh, unique content each time — different deity, different hook, different theme.
 ALL metadata (title, description, tags) must be contextually consistent with each other and the script."""
@@ -243,11 +257,11 @@ def generate_video_content() -> dict:
 
     content = json.loads(text)
 
-    # Guarantee exactly IMAGES_PER_VIDEO prompts
-    prompts = content.get("image_prompts", [])
-    while len(prompts) < IMAGES_PER_VIDEO:
-        prompts.append(prompts[-1] if prompts else "Lord Ganesha divine portrait, golden light, 9:16")
-    content["image_prompts"] = prompts[:IMAGES_PER_VIDEO]
+    # Guarantee exactly 5 search terms (2 images each = 10 slots → first 8 used)
+    terms = content.get("search_terms", [])
+    while len(terms) < 5:
+        terms.append("india temple")
+    content["search_terms"] = terms[:5]
 
     # Save this generation to history so future runs avoid it
     title = content.get("title", "unknown")
