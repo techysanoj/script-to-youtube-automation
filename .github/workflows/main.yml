@@ -74,8 +74,9 @@ jobs:
       # ── Run pipeline — 1 video per slot ──────────────────────────────────────
       - name: Run automation pipeline
         env:
-          GEMINI_API_KEY:  ${{ secrets.GEMINI_API_KEY }}
-          PEXELS_API_KEY:  ${{ secrets.PEXELS_API_KEY }}
+          GEMINI_API_KEY:       ${{ secrets.GEMINI_API_KEY }}
+          UNSPLASH_ACCESS_KEY:  ${{ secrets.UNSPLASH_ACCESS_KEY }}
+          PEXELS_API_KEY:       ${{ secrets.PEXELS_API_KEY }}
           VIDEOS_PER_RUN:  "1"
           YOUTUBE_PRIVACY: "public"
         run: python main.py
