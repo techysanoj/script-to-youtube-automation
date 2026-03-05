@@ -19,11 +19,12 @@ Steps:
 """
 
 import argparse
+import re
 import shutil
 import time
 from datetime import datetime, timezone
 
-from config import VIDEOS_PER_RUN, TEMP_DIR
+from config import VIDEOS_PER_RUN, TEMP_DIR, YOUTUBE_VIDEOS_DIR
 from src.script_generator import generate_video_content
 from src.image_generator import generate_all_images
 from src.voiceover import generate_voiceover
@@ -89,8 +90,30 @@ def run_pipeline(video_index: int, stop_after: int = 6) -> dict:
             video_index=video_index,
         )
         if stop_after == 5:
-            print(f"\n  Stopped after step 5 (video). File saved to: {video_path}")
-            return {"run_id": run_id, "stopped_at": 5, "title": content["title"], "video_path": str(video_path)}
+            # Save video + metadata txt to youtube-videos/ for manual upload
+            safe_title = re.sub(r"[^\w\s-]", "", content["title"])[:60].strip()
+            safe_title = re.sub(r"\s+", "_", safe_title)
+            dest_video = YOUTUBE_VIDEOS_DIR / f"{safe_title}_{run_id}.mp4"
+            dest_txt   = YOUTUBE_VIDEOS_DIR / f"{safe_title}_{run_id}.txt"
+
+            shutil.copy2(video_path, dest_video)
+
+            txt_content = (
+                f"TITLE:\n{content['title']}\n\n"
+                f"DESCRIPTION:\n{content['description']}\n\n"
+                f"TAGS:\n{', '.join(content['tags'])}\n"
+            )
+            dest_txt.write_text(txt_content, encoding="utf-8")
+
+            print(f"\n  Video   → {dest_video}")
+            print(f"  Metadata→ {dest_txt}")
+            return {
+                "run_id": run_id,
+                "stopped_at": 5,
+                "title": content["title"],
+                "video_path": str(dest_video),
+                "txt_path": str(dest_txt),
+            }
 
         # ── 6. Upload ─────────────────────────────────────────────────────────
         print("\n[6/6] Uploading to YouTube…")
@@ -157,7 +180,9 @@ def main() -> None:
         for r in results:
             print(f"  ✓ {r['title'][:60]}")
             if "video_path" in r:
-                print(f"    Video: {r['video_path']}")
+                print(f"    Video   : {r['video_path']}")
+            if "txt_path" in r:
+                print(f"    Metadata: {r['txt_path']}")
     for f in failures:
         print(f"  ✗ Video {f['index']} — {f['error'][:80]}")
     print("=" * 56)

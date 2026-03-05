@@ -37,7 +37,9 @@ OUTPUT_DIR = BASE_DIR / "output"
 ASSETS_DIR = BASE_DIR / "assets"
 MUSIC_DIR = ASSETS_DIR / "music"
 TEMP_DIR = BASE_DIR / "temp"
+YOUTUBE_VIDEOS_DIR = BASE_DIR / "youtube-videos"   # manual-upload folder
 
 OUTPUT_DIR.mkdir(exist_ok=True)
 TEMP_DIR.mkdir(exist_ok=True)
 MUSIC_DIR.mkdir(parents=True, exist_ok=True)
+YOUTUBE_VIDEOS_DIR.mkdir(exist_ok=True)

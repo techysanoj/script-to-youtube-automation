@@ -6,6 +6,7 @@ Script Generator — uses Gemini 1.5 Flash (free tier) to generate:
 """
 
 import json
+import re
 import random
 import datetime
 from pathlib import Path
@@ -256,6 +257,23 @@ def generate_video_content() -> dict:
     text = text[start:end]
 
     content = json.loads(text)
+
+    # Normalise tags to lowercase (e.g. "Durga Protection" → "durga protection")
+    content["tags"] = [t.lower() for t in content.get("tags", [])]
+
+    # Normalise hashtags in description to lowercase (e.g. #Mahadev → #mahadev)
+    content["description"] = re.sub(
+        r"#([A-Za-z0-9_]+)",
+        lambda m: "#" + m.group(1).lower(),
+        content.get("description", ""),
+    )
+
+    # Normalise hashtags in title to lowercase (e.g. #Shorts #Mahadev → #shorts #mahadev)
+    content["title"] = re.sub(
+        r"#([A-Za-z0-9_]+)",
+        lambda m: "#" + m.group(1).lower(),
+        content.get("title", ""),
+    )
 
     # Guarantee exactly 5 search terms (2 images each = 10 slots → first 8 used)
     terms = content.get("search_terms", [])
