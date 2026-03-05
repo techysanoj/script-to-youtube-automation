@@ -1,15 +1,14 @@
 """
-Image Generator — Wikimedia Commons → Unsplash → Pexels fallback chain.
+Image Generator — Unsplash → Pexels fallback chain.
 
 Gemini provides 5 two-word search terms.
 We fetch 2 images per term (up to 10 total) and return the first
 IMAGES_PER_VIDEO (8) results.
 
 Source priority for each image slot:
-  1. Wikimedia Commons  (free, no key — rich Hindu deity art + illustrations)
-  2. Unsplash           (free Access Key — high quality photography)
-  3. Pexels             (free key — good general stock photos)
-  4. Gradient           (last-resort Pillow fallback)
+  1. Unsplash           (free Access Key — high quality photography)
+  2. Pexels             (free key — good general stock photos)
+  3. Gradient           (last-resort Pillow fallback)
 """
 
 import time
@@ -71,83 +70,7 @@ def _fallback_image(index: int, output_path: Path) -> Path:
     return output_path
 
 
-# ── Source 1: Wikimedia Commons ────────────────────────────────────────────────
-
-def _fetch_wikimedia(
-    query: str, image_dir: Path, start_idx: int, needed: int, used_ids: set
-) -> list[Path]:
-    """Fetch up to `needed` images from Wikimedia Commons (no API key required)."""
-    paths: list[Path] = []
-    try:
-        # Step 1: search File namespace (ns=6) for matching titles
-        search = requests.get(
-            "https://commons.wikimedia.org/w/api.php",
-            params={
-                "action": "query",
-                "list": "search",
-                "srsearch": query,
-                "srnamespace": 6,
-                "srlimit": needed * 4,
-                "format": "json",
-            },
-            headers=_HEADERS,
-            timeout=20,
-        )
-        if search.status_code != 200:
-            return []
-        results = search.json().get("query", {}).get("search", [])
-        titles = [r["title"] for r in results if r["title"] not in used_ids]
-        if not titles:
-            return []
-
-        # Step 2: batch-fetch image URLs + mime types
-        info = requests.get(
-            "https://commons.wikimedia.org/w/api.php",
-            params={
-                "action": "query",
-                "titles": "|".join(titles[: needed * 3]),
-                "prop": "imageinfo",
-                "iiprop": "url|size|mime",
-                "iiurlwidth": VIDEO_WIDTH,
-                "format": "json",
-            },
-            headers=_HEADERS,
-            timeout=20,
-        )
-        if info.status_code != 200:
-            return []
-
-        pages = info.json().get("query", {}).get("pages", {}).values()
-        for page in pages:
-            if len(paths) >= needed:
-                break
-            if page.get("pageid", -1) < 0:   # missing page
-                continue
-            title = page.get("title", "")
-            if title in used_ids:
-                continue
-            info_list = page.get("imageinfo", [])
-            if not info_list:
-                continue
-            ii = info_list[0]
-            if ii.get("mime", "") not in ("image/jpeg", "image/png", "image/webp"):
-                continue
-            url = ii.get("thumburl") or ii.get("url")
-            if not url:
-                continue
-            out = image_dir / f"image_{start_idx + len(paths):02d}.jpg"
-            if _download_and_save(url, out):
-                used_ids.add(title)
-                paths.append(out)
-                print(f"      [Wikimedia] {title[5:55]}")   # strip "File:" prefix
-
-    except Exception as exc:
-        print(f"      [Wikimedia] error: {exc}")
-
-    return paths
-
-
-# ── Source 2: Unsplash ─────────────────────────────────────────────────────────
+# ── Source 1: Unsplash ─────────────────────────────────────────────────────────
 
 def _fetch_unsplash(
     query: str, image_dir: Path, start_idx: int, needed: int, used_ids: set
@@ -198,7 +121,7 @@ def _fetch_unsplash(
     return paths
 
 
-# ── Source 3: Pexels ───────────────────────────────────────────────────────────
+# ── Source 2: Pexels ───────────────────────────────────────────────────────────
 
 def _fetch_pexels(
     query: str, image_dir: Path, start_idx: int, needed: int, used_ids: set
@@ -243,7 +166,7 @@ def _fetch_pexels(
 # ── Main entry point ───────────────────────────────────────────────────────────
 
 def generate_all_images(search_terms: list[str], run_id: str) -> list[Path]:
-    """Fetch 2 images per search term using Wikimedia → Unsplash → Pexels.
+    """Fetch 2 images per search term using Unsplash → Pexels.
 
     5 terms × 2 images = up to 10 fetched; returns first IMAGES_PER_VIDEO (8).
     Any remaining slots are filled with gradient fallbacks.
@@ -264,14 +187,10 @@ def generate_all_images(search_terms: list[str], run_id: str) -> list[Path]:
 
         batch: list[Path] = []
 
-        # 1. Wikimedia Commons
-        batch += _fetch_wikimedia(term, image_dir, start_idx + len(batch), needed - len(batch), used_ids)
+        # 1. Unsplash
+        batch += _fetch_unsplash(term, image_dir, start_idx + len(batch), needed - len(batch), used_ids)
 
-        # 2. Unsplash (if still short)
-        if len(batch) < needed:
-            batch += _fetch_unsplash(term, image_dir, start_idx + len(batch), needed - len(batch), used_ids)
-
-        # 3. Pexels (if still short)
+        # 2. Pexels (if still short)
         if len(batch) < needed:
             batch += _fetch_pexels(term, image_dir, start_idx + len(batch), needed - len(batch), used_ids)
 
