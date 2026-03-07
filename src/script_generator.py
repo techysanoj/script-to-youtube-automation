@@ -16,23 +16,24 @@ from config import GEMINI_API_KEY
 
 _client = genai.Client(api_key=GEMINI_API_KEY)
 
-# ── Content history — tracks last N deity+theme combos to prevent repetition ──
-_HISTORY_FILE = Path(__file__).parent.parent / "content_history.json"
-_MAX_HISTORY = 15   # remember last 15 videos
+# ── Content history — separate files so YouTube and Facebook never share topics ──
+_YOUTUBE_HISTORY_FILE = Path(__file__).parent.parent / "content_history_youtube.json"
+_FACEBOOK_HISTORY_FILE = Path(__file__).parent.parent / "content_history_facebook.json"
+_MAX_HISTORY = 15   # remember last 15 videos per platform
 
 
-def _load_history() -> list[str]:
-    if _HISTORY_FILE.exists():
+def _load_history(history_file: Path) -> list[str]:
+    if history_file.exists():
         try:
-            return json.loads(_HISTORY_FILE.read_text(encoding="utf-8"))
+            return json.loads(history_file.read_text(encoding="utf-8"))
         except Exception:
             return []
     return []
 
 
-def _save_to_history(history: list[str], entry: str) -> None:
+def _save_to_history(history: list[str], entry: str, history_file: Path) -> None:
     history.append(entry)
-    _HISTORY_FILE.write_text(
+    history_file.write_text(
         json.dumps(history[-_MAX_HISTORY:], ensure_ascii=False, indent=2),
         encoding="utf-8",
     )
@@ -207,7 +208,7 @@ def generate_video_content() -> dict:
     Uses a history file to avoid repeating deity+theme combos and injects
     a unique session seed so the model cannot return a cached response.
     """
-    history = _load_history()
+    history = _load_history(_YOUTUBE_HISTORY_FILE)
 
     # Build the avoid-list from the last 5 entries (most recent = most important)
     avoid_list = history[-5:] if history else []
@@ -283,6 +284,204 @@ def generate_video_content() -> dict:
 
     # Save this generation to history so future runs avoid it
     title = content.get("title", "unknown")
-    _save_to_history(history, f"{datetime.datetime.now().strftime('%Y-%m-%d')} | {title}")
+    _save_to_history(history, f"{datetime.datetime.now().strftime('%Y-%m-%d')} | {title}", _YOUTUBE_HISTORY_FILE)
+
+    return content
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# FACEBOOK-SPECIFIC CONTENT GENERATION
+# ══════════════════════════════════════════════════════════════════════════════
+
+_FB_SYSTEM_PROMPT = """You are an expert Indian Facebook Reels creator and social media growth specialist \
+creating viral Hindu spirituality content for Indian Facebook audiences (ages 25-55).
+
+Facebook is DIFFERENT from YouTube — apply Facebook-specific rules strictly.
+
+Return ONLY valid JSON — no markdown fences, no extra text — in this exact structure:
+{
+  "title": "Internal tracking title — bilingual Hindi+English (rules below)",
+  "script": "40-second Hinglish voiceover script (same rules as always)",
+  "search_terms": [
+    "deity scene1",
+    "deity scene2",
+    "deity scene3",
+    "temple word1",
+    "india word2"
+  ],
+  "description": "Facebook Reels caption (rules below — this IS the post text)",
+  "tags": ["Facebook tags list — rules below"]
+}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TITLE RULES — internal label, bilingual:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+This title is for internal tracking only (not shown as a YouTube-style title on Facebook).
+FORMAT: Short bilingual line — Hindi deity name + English topic hook
+LENGTH: 60 characters max
+EXAMPLES:
+  "महादेव | Shiva's Secret That Changes Everything"
+  "जय श्री राम | Ram's Blessing for Hard Times"
+  "गणेश जी | Ganesha's Power — Listen Once"
+  "दुर्गा माँ | Durga's Protection Mantra for Success"
+NO hashtags in the title field — hashtags go in description only.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SCRIPT RULES — 40-second Hinglish voiceover (same as always):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Structure: HOOK (5s) → BODY (28s) → ENDING (7s)
+Total: 90-110 words — mixed script Hinglish (Devanagari for Hindi words, Latin for English words).
+HOOK: Bold question or surprising claim — grab attention in first 3 seconds.
+BODY: 3-4 short punchy sentences — divine teaching tied to real life (money, health, love, success).
+ENDING: Powerful close + deity battle cry ("जय महादेव!" / "जय श्री राम!" / "जय माता दी!")
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FACEBOOK CAPTION RULES — this is the full post text shown in the feed:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL: The first 125 characters appear BEFORE the "See more" button.
+  → Make line 1 the strongest hook. Viewer decides to watch in 2 seconds.
+
+STRUCTURE (follow this exactly):
+  Line 1 — HOOK (≤125 chars): 1-2 emojis + Hindi/bilingual emotional hook about this deity+topic
+  Line 2-3 — BODY: 2 short sentences summarising the divine message of THIS video
+  Line 4 — CTA: "👍 Like | ❤️ Share | 🔔 Follow करें और रोज़ नई भक्ति देखें"
+  Line 5 — HASHTAGS: 5-8 tags on one line (rules below)
+
+FACEBOOK CAPTION LANGUAGE:
+  Natural bilingual mix — how real Indians write on Facebook.
+  Hindi words in Devanagari, English words in Latin script.
+  Example: "🙏 महादेव की यह शक्ति जानकर आप हैरान हो जाएंगे!
+  जब life में सब कुछ गलत हो रहा हो, तब Shiva का यह message याद रखो।
+  इस video को share करो — किसी की life बदल सकती है।
+  👍 Like | ❤️ Share | 🔔 Follow करें और रोज़ नई भक्ति देखें
+  #JaiMahadev #Bhakti #HinduDharma #Reels #Viral"
+
+CAPTION LENGTH: 300-450 characters total — short captions get more shares on Facebook.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FACEBOOK HASHTAG RULES — 5-8 tags ONLY (fewer = more reach on Facebook):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+IMPORTANT: Facebook's algorithm in 2026 PENALISES posts with 10+ hashtags.
+  Use EXACTLY 5-8 hashtags — quality over quantity.
+  Place ALL hashtags at the END of the caption on the last line.
+
+MANDATORY (always include these 3):
+  #Reels — triggers Facebook Reels distribution algorithm
+  #Viral — boosts reach in the "trending" feed
+  One deity tag — pick the EXACT one matching this video's deity (see list below)
+
+DEITY HASHTAGS — pick ONE that matches:
+  Shiva/Mahadev  → #JaiMahadev
+  Krishna        → #JaiShriKrishna
+  Ram            → #JaiShriRam
+  Hanuman        → #JaiHanuman
+  Durga          → #JaiMaaDurga
+  Lakshmi        → #JaiMaaLakshmi
+  Ganesha        → #JaiGanesha
+  Saraswati      → #JaiMaaSaraswati
+  Vishnu         → #JaiVishnu
+
+TRENDING TOPIC HASHTAGS — pick 2-3 from this list based on video content:
+  #Bhakti        — devotional content (highest reach for this niche)
+  #HinduDharma   — Hindu philosophy/values
+  #Spiritual     — broad spiritual audience
+  #DivineBlessing — blessing/protection theme
+  #Motivation    — motivational message
+  #IndianCulture — cultural content
+  #BhaktiSadhna  — dedicated devotees
+  #HindiReels    — Hindi-speaking audience reach
+
+AUDIENCE HASHTAG — include exactly ONE:
+  #India  OR  #BharatMata  OR  #HindiContent
+
+GOOD EXAMPLES (5-8 tags only):
+  "#JaiMahadev #Bhakti #HinduDharma #Reels #Viral #India"                    (6 tags — Shiva)
+  "#JaiShriRam #Bhakti #DivineBlessing #Reels #Viral #HindiReels"            (6 tags — Ram)
+  "#JaiHanuman #Motivation #HinduDharma #Reels #Viral #BhaktiSadhna #India"  (7 tags — Hanuman)
+
+NEVER use: #Shorts (YouTube-only), #HinduGod, #Status, #trending (generic, penalised)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TAGS FIELD RULES (API tags array — different from caption hashtags):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+The "tags" JSON field is for internal metadata only — NOT shown publicly on Facebook.
+Generate 6-10 descriptive strings without # symbol, specific to this video's deity and theme.
+Examples: ["mahadev blessing", "shiva motivation hindi", "hindu devotional reel", "bhakti content india"]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SEARCH TERMS RULES (for stock image APIs — same as always):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Generate EXACTLY 5 search terms. Each term must be EXACTLY 2 English words.
+Use deity's English name for 3 terms with different visual angles (meditation, temple, festival).
+Include 1-2 generic spiritual fallbacks: "temple worship", "india spiritual", "diwali lights".
+
+Generate completely fresh, unique content each time — different deity, different hook, different theme.
+ALL metadata must be contextually consistent with the script."""
+
+
+def generate_facebook_video_content() -> dict:
+    """Generate Facebook-optimised video content using Gemini 2.5 Flash.
+
+    Uses a separate history file from YouTube so both platforms get unique content.
+    Returns the same dict structure so the pipeline works without changes.
+    """
+    history = _load_history(_FACEBOOK_HISTORY_FILE)
+
+    avoid_list = history[-5:] if history else []
+    avoid_str = "; ".join(avoid_list) if avoid_list else "none yet"
+
+    session_seed = (
+        f"{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | "
+        f"seed={random.randint(100_000, 999_999)}"
+    )
+
+    user_prompt = (
+        f"Session: {session_seed}\n"
+        f"Recently used deity+theme combos (DO NOT repeat any of these):\n"
+        f"  {avoid_str}\n\n"
+        f"Generate completely fresh Facebook Reels content with a DIFFERENT deity and DIFFERENT theme now."
+    )
+
+    response = _client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=[
+            types.Content(role="user", parts=[types.Part(text=_FB_SYSTEM_PROMPT)]),
+            types.Content(role="user", parts=[types.Part(text=user_prompt)]),
+        ],
+        config=types.GenerateContentConfig(
+            temperature=0.95,
+            max_output_tokens=8192,
+        ),
+    )
+
+    if not response.text:
+        raise RuntimeError("Gemini returned an empty response.")
+    text = response.text.strip()
+
+    if "```" in text:
+        text = text.split("```")[1]
+        if text.startswith("json"):
+            text = text[4:]
+    text = text.strip()
+
+    start = text.find("{")
+    end = text.rfind("}") + 1
+    if start == -1 or end == 0:
+        raise RuntimeError(f"No JSON object found in Gemini response:\n{text[:200]}")
+    text = text[start:end]
+
+    content = json.loads(text)
+
+    content["tags"] = [t.lower() for t in content.get("tags", [])]
+
+    # Guarantee exactly 5 search terms
+    terms = content.get("search_terms", [])
+    while len(terms) < 5:
+        terms.append("india temple")
+    content["search_terms"] = terms[:5]
+
+    # Save to Facebook-only history
+    title = content.get("title", "unknown")
+    _save_to_history(history, f"{datetime.datetime.now().strftime('%Y-%m-%d')} | {title}", _FACEBOOK_HISTORY_FILE)
 
     return content
