@@ -1,36 +1,40 @@
 name: Daily YouTube Shorts Upload
 
 # ─────────────────────────────────────────────────────────────────────────────
-# OPTIMAL UPLOAD SCHEDULE FOR INDIAN AUDIENCE (IST = UTC + 5:30)
+# UPLOAD SCHEDULE — 5 slots per day (IST = UTC + 5:30)
 #
-# Research shows peak YouTube Shorts engagement for Indian viewers:
-#   Slot 1 — Morning   : 8:30 AM IST  = 03:00 UTC  (morning commute / breakfast)
-#   Slot 2 — Afternoon : 1:30 PM IST  = 08:00 UTC  (lunch break browsing)
-#   Slot 3 — Evening   : 7:30 PM IST  = 14:00 UTC  (golden window — after work/school)
+# Each slot runs BOTH pipelines sequentially in one job:
+#   1. main.py        → 1 photo-based Short  (images + Ken Burns)
+#   2. main_video.py  → 1 video-clip Short   (real Pexels/Pixabay footage)
 #
-# Why three separate runs instead of one bulk run:
-#   - YouTube rewards consistent upload frequency over bulk uploads
-#   - Each video gets pushed independently by the algorithm
-#   - Covers all three peak engagement windows for maximum reach
+# Slot 1 —  5:00 AM IST = 23:30 UTC (prev day)  early risers / morning aarti
+# Slot 2 —  9:00 AM IST = 03:30 UTC             morning commute
+# Slot 3 —  1:30 PM IST = 08:00 UTC             lunch break
+# Slot 4 —  5:30 PM IST = 12:00 UTC             evening tea / school out
+# Slot 5 —  8:30 PM IST = 15:00 UTC             prime time / family viewing
 #
-# Total: 3 videos per day, 1 per run
+# Total: 10 videos per day — 5 photo + 5 video
 # ─────────────────────────────────────────────────────────────────────────────
 
 on:
   schedule:
-    # Slot 1: 8:30 AM IST  (03:00 UTC) — morning commute / breakfast
-    - cron: "0 3 * * *"
-    # Slot 2: 1:30 PM IST  (08:00 UTC) — afternoon lunch break
+    # Slot 1:  5:00 AM IST (23:30 UTC)
+    - cron: "30 23 * * *"
+    # Slot 2:  9:00 AM IST (03:30 UTC)
+    - cron: "30 3 * * *"
+    # Slot 3:  1:30 PM IST (08:00 UTC)
     - cron: "0 8 * * *"
-    # Slot 3: 7:30 PM IST  (14:00 UTC) — evening golden window (prime time)
-    - cron: "0 14 * * *"
+    # Slot 4:  5:30 PM IST (12:00 UTC)
+    - cron: "0 12 * * *"
+    # Slot 5:  8:30 PM IST (15:00 UTC)
+    - cron: "0 15 * * *"
   workflow_dispatch:   # Allow manual trigger from GitHub Actions tab
 
 jobs:
   upload:
-    name: Generate & Upload 1 YouTube Short
+    name: Generate & Upload 1 Photo Short + 1 Video Short
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
 
     steps:
       # ── Checkout ─────────────────────────────────────────────────────────────
@@ -62,7 +66,6 @@ jobs:
         run: pip install -r requirements.txt
 
       # ── Credentials ───────────────────────────────────────────────────────────
-      # These secrets are stored in GitHub → Settings → Secrets → Actions
       - name: Write YouTube credentials from secrets
         env:
           YOUTUBE_CLIENT_SECRETS: ${{ secrets.YOUTUBE_CLIENT_SECRETS }}
@@ -71,8 +74,8 @@ jobs:
           echo "$YOUTUBE_CLIENT_SECRETS" > client_secrets.json
           echo "$YOUTUBE_TOKEN"          > youtube_token.json
 
-      # ── Run pipeline — 1 video per slot ──────────────────────────────────────
-      - name: Run automation pipeline
+      # ── Step A: Photo-based Short (existing pipeline — unchanged) ─────────────
+      - name: "[Photo] Run photo pipeline — 1 Short"
         env:
           GEMINI_API_KEY:       ${{ secrets.GEMINI_API_KEY }}
           UNSPLASH_ACCESS_KEY:  ${{ secrets.UNSPLASH_ACCESS_KEY }}
@@ -81,12 +84,22 @@ jobs:
           YOUTUBE_PRIVACY: "public"
         run: python main.py
 
-      # ── Save generated video as artifact (3-day retention for review) ─────────
-      - name: Upload video artifact
+      # ── Step B: Video-clip Short (new pipeline) ───────────────────────────────
+      - name: "[Video] Run video-clip pipeline — 1 Short"
+        env:
+          GEMINI_API_KEY:       ${{ secrets.GEMINI_API_KEY }}
+          PEXELS_API_KEY:       ${{ secrets.PEXELS_API_KEY }}
+          PIXABAY_API_KEY:      ${{ secrets.PIXABAY_API_KEY }}
+          VIDEOS_PER_RUN:  "1"
+          YOUTUBE_PRIVACY: "public"
+        run: python main_video.py
+
+      # ── Save both videos as artifacts (3-day retention for review) ────────────
+      - name: Upload video artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: short-${{ github.run_number }}
+          name: shorts-${{ github.run_number }}
           path: output/*.mp4
           retention-days: 3
           if-no-files-found: ignore
