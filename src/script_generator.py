@@ -105,18 +105,38 @@ SCRIPT RULES — 40-second Hinglish voiceover:
 Structure: HOOK (5s) → BODY (28s) → ENDING (7s)
 Total: 90-110 words in Roman Hinglish (reads in ~40 seconds at natural pace)
 
-HOOK (1-2 sentences — grab attention in 3 seconds):
-- Bold question or surprising claim about the deity
-- Example: "Kya aap jaante hain, Shiva ne ek baar poori duniya ko rok diya tha?"
+HOOK — THE MOST CRITICAL PART (first 3 seconds decide everything):
+The hook MUST make the viewer stop scrolling AND want to watch till the very end.
+Use ONE of these proven retention-hook formulas:
 
-BODY (3-4 short sentences — deliver value):
+  OPEN LOOP (creates curiosity that only watching till end resolves):
+    "क्या आप जानते हैं — [deity] का वो एक secret जो 99% लोग नहीं जानते? अंत तक ज़रूर सुनो।"
+    "[Deity] ने एक बात कही थी जो आपकी पूरी life बदल देगी — सुनते रहिए।"
+
+  BOLD PROMISE (viewer stays to receive the benefit):
+    "अगर आप यह [deity] का message आज सुन लेते हैं — आपकी मुश्किलें खत्म हो जाएंगी।"
+    "यह video देखने के बाद आप कभी हार नहीं मानेंगे — [deity] का वचन है।"
+
+  PATTERN INTERRUPT (shocking or counter-intuitive opening):
+    "[Deity] ने कहा था — जब सब कुछ छिन जाए, तब भी एक चीज़ बची रहती है।"
+    "जो इंसान सबसे ज़्यादा तकलीफ में होता है — [deity] उसके सबसे करीब होते हैं।"
+
+HOOK RULES:
+- ALWAYS end the hook with a reason to keep watching (curiosity gap / open loop)
+- NEVER reveal the answer/resolution in the hook — save it for the body or ending
+- Max 2 sentences, max 25 words total for the hook
+
+BODY (3-4 short sentences — deliver on the hook's promise):
 - Divine teaching, story, or blessing connected to real life (paisa, love, health, success)
 - Max 12 words per sentence — keep it punchy
-- Example: "Jab mushkilein aati hain, woh humein todti nahi — balki aur strong banati hain."
+- Build the message progressively — each sentence escalates toward the payoff
+- Example: "जब life में अँधेरा हो, [deity] कहते हैं — रुको मत। वो तूफ़ान नहीं, एक test है। और हर test के बाद एक नई शुरुआत होती है।"
 
-ENDING (1-2 sentences — powerful close):
-- Reaffirm the blessing, then deity battle cry
-- "Unka ashirwad hamesha hamare saath hai. Jai Mahadev!" / "Jai Shri Ram!" / "Jai Mata Di!"
+ENDING (2-3 sentences — powerful close + CTA):
+- First: deliver the final payoff / blessing — make it feel like a divine gift
+- Then: deity battle cry ("जय महादेव!" / "जय श्री राम!" / "जय माता दी!" etc.)
+- ALWAYS end with this CTA line (word-for-word):
+  "Video पसंद आई तो Like करो, Share करो अपनों के साथ, और Subscribe करना मत भूलना। 🙏"
 
 Script language: MIXED-SCRIPT HINGLISH
 - Hindi / Urdu words → write in Devanagari script (देवनागरी)
@@ -126,9 +146,11 @@ Script language: MIXED-SCRIPT HINGLISH
 - Conversational, like a friend talking — natural code-mixing as real Indians speak
 
 MIXED-SCRIPT EXAMPLE (correct format):
-  "क्या आप जानते हैं — Shiva ने एक बार पूरी duniya को रोक दिया था?
-   जब life में मुश्किलें आती हैं, वो हमें तोड़ती नहीं — बल्कि और strong बनाती हैं।
-   उनका आशीर्वाद हमेशा हमारे साथ है। जय महादेव!"
+  "क्या आप जानते हैं — Shiva का वो एक secret जो आपकी पूरी life बदल सकता है? अंत तक सुनो।
+   जब life में सब कुछ टूटता लगे, Shiva कहते हैं — यही वो moment है जब असली शक्ति जन्म लेती है।
+   मुश्किलें आपको तोड़ने नहीं, बल्कि और strong बनाने आती हैं।
+   उनका आशीर्वाद हमेशा हमारे साथ है। जय महादेव!
+   Video पसंद आई तो Like करो, Share करो अपनों के साथ, और Subscribe करना मत भूलना। 🙏"
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 DESCRIPTION RULES — Hindi Devanagari, YouTube SEO 2026:
@@ -185,18 +207,30 @@ SEARCH TERMS RULES (used to search Wikimedia, Unsplash, Pexels):
 Generate EXACTLY 5 search terms. Each term must be EXACTLY 2 English words.
 These will be sent to real stock photo APIs — short, specific terms work best.
 
+STRICT CONTENT RULES — MANDATORY:
+⚠️ ALL search terms must return ONLY Hindu / Indian spiritual imagery.
+FORBIDDEN — NEVER use any of these words or concepts in search terms:
+  mosque, masjid, minar, minaret, islam, islamic, muslim, quran, namaz, prayer mat,
+  crescent, hijab, burqa, arabic, arab, middle east, church, cross, cathedral, bible,
+  christian, jesus, mary, pope, synagogue, jewish, jewish, halal, eid, ramadan.
+If a term could accidentally return mosque/Islamic imagery (e.g. "india architecture"),
+  replace it with a safer Hindu-specific term (e.g. "temple gopuram").
+
 RULES:
 - 2 words ONLY per term — APIs match better with concise phrases
 - English only — Wikimedia, Unsplash and Pexels are English-indexed
 - Use deity's English name (e.g. "shiva", "krishna", "hanuman") as word 1 for 3 terms
 - Word 2 should show a DIFFERENT visual angle: meditation, temple, festival, portrait, devotion
-- Include 1-2 generic spiritual fallbacks: "temple worship", "diwali lights", "india spiritual"
+- Include 1-2 SAFE Hindu spiritual fallbacks: "temple gopuram", "diwali lamps", "hindu festival",
+  "incense smoke", "lotus flower", "india rangoli", "saffron flowers", "om symbol"
+- NEVER use generic "india" alone or "india architecture" — too likely to surface mixed results
 
 GOOD EXAMPLES:
-  Shiva video   → ["shiva meditation", "shiva temple", "shiva cosmic", "temple incense", "india spiritual"]
-  Krishna video → ["krishna flute", "krishna devotion", "temple worship", "india festival", "radha krishna"]
-  Durga video   → ["durga goddess", "navratri festival", "temple offerings", "india devotion", "diwali lights"]
-  Hanuman video → ["hanuman devotion", "hanuman temple", "india bhakti", "temple worship", "ram hanuman"]
+  Shiva video   → ["shiva meditation", "shiva temple", "shiva statue", "temple gopuram", "diwali lamps"]
+  Krishna video → ["krishna flute", "krishna devotion", "temple worship", "india festival", "lotus flower"]
+  Durga video   → ["durga goddess", "navratri festival", "temple offerings", "india devotion", "diwali lamps"]
+  Hanuman video → ["hanuman devotion", "hanuman temple", "hindu bhakti", "temple gopuram", "saffron flowers"]
+  Ganesh video  → ["ganesha statue", "ganesh festival", "temple offering", "incense smoke", "om symbol"]
 
 Generate completely fresh, unique content each time — different deity, different hook, different theme.
 ALL metadata (title, description, tags) must be contextually consistent with each other and the script."""
@@ -331,9 +365,18 @@ SCRIPT RULES — 40-second Hinglish voiceover (same as always):
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Structure: HOOK (5s) → BODY (28s) → ENDING (7s)
 Total: 90-110 words — mixed script Hinglish (Devanagari for Hindi words, Latin for English words).
-HOOK: Bold question or surprising claim — grab attention in first 3 seconds.
+HOOK — CRITICAL (first 3 seconds decide retention):
+Use an open-loop or bold-promise hook that makes the viewer want to watch till the very end.
+  Open loop: "[Deity] का वो एक secret जो 99% लोग नहीं जानते — अंत तक ज़रूर सुनो।"
+  Bold promise: "यह video देखने के बाद आप कभी हार नहीं मानेंगे — [deity] का वचन है।"
+NEVER reveal the answer in the hook — create curiosity that only watching till end resolves.
+
 BODY: 3-4 short punchy sentences — divine teaching tied to real life (money, health, love, success).
+Build progressively — each sentence escalates toward the final payoff.
+
 ENDING: Powerful close + deity battle cry ("जय महादेव!" / "जय श्री राम!" / "जय माता दी!")
+ALWAYS finish with this CTA line (word-for-word):
+  "Video पसंद आई तो Like करो, Share करो अपनों के साथ, और Subscribe करना मत भूलना। 🙏"
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 FACEBOOK CAPTION RULES — this is the full post text shown in the feed:
@@ -413,7 +456,16 @@ SEARCH TERMS RULES (for stock image APIs — same as always):
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Generate EXACTLY 5 search terms. Each term must be EXACTLY 2 English words.
 Use deity's English name for 3 terms with different visual angles (meditation, temple, festival).
-Include 1-2 generic spiritual fallbacks: "temple worship", "india spiritual", "diwali lights".
+
+STRICT CONTENT RULES — MANDATORY:
+⚠️ ALL search terms must return ONLY Hindu / Indian spiritual imagery.
+FORBIDDEN — NEVER use any of these words in search terms:
+  mosque, masjid, minar, minaret, islam, islamic, muslim, quran, namaz, crescent,
+  hijab, burqa, arabic, arab, middle east, church, cross, cathedral, christian,
+  jesus, mary, synagogue, jewish, halal, eid, ramadan.
+Use SAFE Hindu-specific fallbacks only: "temple gopuram", "diwali lamps", "hindu festival",
+  "incense smoke", "lotus flower", "india rangoli", "saffron flowers", "om symbol".
+NEVER use generic "india architecture" — replace with "temple gopuram" or "hindu mandir".
 
 Generate completely fresh, unique content each time — different deity, different hook, different theme.
 ALL metadata must be contextually consistent with the script."""
