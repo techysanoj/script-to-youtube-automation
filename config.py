@@ -17,7 +17,7 @@ YOUTUBE_SCOPES = [
     "https://www.googleapis.com/auth/youtube.upload",
     "https://www.googleapis.com/auth/youtube.readonly",
 ]
-YOUTUBE_CATEGORY_ID = "22"   # People & Blogs
+YOUTUBE_CATEGORY_ID = "24"   # Entertainment
 YOUTUBE_PRIVACY = os.getenv("YOUTUBE_PRIVACY", "public")  # public | private | unlisted
 
 # ── Video Settings ────────────────────────────────────────────────────────────

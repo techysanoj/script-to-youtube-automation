@@ -27,6 +27,7 @@ from datetime import datetime, timezone
 from config import VIDEOS_PER_RUN, TEMP_DIR, YOUTUBE_VIDEOS_DIR
 from src.script_generator import generate_video_content
 from src.image_generator import generate_all_images
+from src.thumbnail_creator import create_thumbnail
 from src.voiceover import generate_voiceover
 from src.audio_manager import get_background_music
 from src.video_creator import create_video
@@ -61,6 +62,10 @@ def run_pipeline(video_index: int, stop_after: int = 6) -> dict:
         if not image_paths:
             raise RuntimeError("Image generation returned no usable files.")
         print(f"  {len(image_paths)} images ready.")
+
+        # Build thumbnail from first (deity) image + title
+        thumbnail_path = create_thumbnail(image_paths[0], content["title"], run_id)
+
         if stop_after == 2:
             print("\n  Stopped after step 2 (images).")
             return {"run_id": run_id, "stopped_at": 2, "title": content["title"]}
@@ -122,6 +127,7 @@ def run_pipeline(video_index: int, stop_after: int = 6) -> dict:
             title=content["title"],
             description=content["description"],
             tags=content["tags"],
+            thumbnail_path=thumbnail_path,
         )
 
         return {

@@ -52,15 +52,31 @@ def _get_service():
     return googleapiclient.discovery.build("youtube", "v3", credentials=creds)
 
 
+def _upload_thumbnail(youtube, video_id: str, thumbnail_path: Path) -> None:
+    """Upload a custom thumbnail after video upload. Non-fatal on failure."""
+    try:
+        media = googleapiclient.http.MediaFileUpload(
+            str(thumbnail_path),
+            mimetype="image/jpeg",
+            resumable=False,
+        )
+        youtube.thumbnails().set(videoId=video_id, media_body=media).execute()
+        print("  Thumbnail uploaded.")
+    except googleapiclient.errors.HttpError as exc:
+        print(f"  Thumbnail upload failed (non-fatal): {exc}")
+
+
 def upload_video(
     video_path: Path,
     title: str,
     description: str,
     tags: list[str],
+    thumbnail_path: Path | None = None,
 ) -> str:
     """
     Upload video_path to YouTube and return the video ID.
     Automatically marks it as a YouTube Short (vertical ≤ 60s + #Shorts tag).
+    Uploads custom thumbnail if thumbnail_path is provided.
     """
     youtube = _get_service()
 
@@ -88,7 +104,7 @@ def upload_video(
             "description": description[:4990],
             "tags": unique_tags,
             "categoryId": YOUTUBE_CATEGORY_ID,
-            "defaultLanguage": "en",
+            "defaultLanguage": "hi",
         },
         "status": {
             "privacyStatus": YOUTUBE_PRIVACY,
@@ -114,4 +130,8 @@ def upload_video(
 
     video_id = response["id"]
     print(f"  Upload complete — https://www.youtube.com/shorts/{video_id}")
+
+    if thumbnail_path and thumbnail_path.exists():
+        _upload_thumbnail(youtube, video_id, thumbnail_path)
+
     return video_id
