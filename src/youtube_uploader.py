@@ -84,13 +84,10 @@ def upload_video(
     if "#Shorts" not in title and "#shorts" not in title:
         title = (title[:93] + " #Shorts") if len(title) > 93 else title + " #Shorts"
 
-    if "#Shorts" not in description and "#shorts" not in description:
-        description += "\n\n#Shorts #HinduGods #Motivation #Spiritual #Devotional"
-
-    # Deduplicate and cap tags
+    # Deduplicate and cap tags (use only AI-generated tags — no generic defaults)
     seen = set()
     unique_tags = []
-    for t in (tags + ["Shorts", "HinduGods", "Motivation", "Spiritual"]):
+    for t in tags:
         key = t.lower()
         if key not in seen:
             seen.add(key)

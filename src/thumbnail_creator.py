@@ -32,16 +32,17 @@ def _get_font(size: int) -> ImageFont.FreeTypeFont:
       4. Pillow default (last resort — Devanagari will NOT render correctly)
     """
     candidates = [
-        # 1. Repo-local font (works everywhere if committed)
+        # 1. Local downloaded font (run scripts/setup_fonts.py once)
         str(_FONT_PATH),
         # 2. Ubuntu / GitHub Actions — fonts-noto-extra apt package
         "/usr/share/fonts/truetype/noto/NotoSansDevanagari-Bold.ttf",
         "/usr/share/fonts/truetype/noto/NotoSansDevanagari[wdth,wght].ttf",
         "/usr/share/fonts/opentype/noto/NotoSansDevanagari-Bold.otf",
-        # 3. macOS fallbacks (Latin only — Devanagari won't render)
-        "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
-        "/System/Library/Fonts/Helvetica.ttc",
-        # 4. Linux generic bold fallback
+        # 3. macOS built-in Devanagari fonts (no download needed)
+        "/System/Library/Fonts/Kohinoor.ttc",            # Kohinoor Devanagari Bold
+        "/System/Library/Fonts/Supplemental/ITFDevanagari.ttc",
+        "/System/Library/Fonts/Supplemental/DevanagariMT.ttc",
+        # 4. Generic Latin fallback (Devanagari won't render, but won't crash)
         "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
     ]
     for path in candidates:

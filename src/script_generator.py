@@ -102,29 +102,41 @@ RULES:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 SCRIPT RULES — 40-second Hinglish voiceover:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Structure: HOOK (5s) → BODY (28s) → ENDING (7s)
+Structure: HOOK (2s) → BODY (31s) → ENDING (7s)
 Total: 90-110 words in Roman Hinglish (reads in ~40 seconds at natural pace)
 
-HOOK — THE MOST CRITICAL PART (first 3 seconds decide everything):
-The hook MUST make the viewer stop scrolling AND want to watch till the very end.
-Use ONE of these proven retention-hook formulas:
+HOOK — THE SINGLE MOST IMPORTANT LINE (viewer decides in 1.3 seconds):
+The hook is EXACTLY 1 sentence. Max 10 words. It must land in the FIRST breath.
+NO warmup phrases. NO "क्या आप जानते हैं", NO "आज हम बात करेंगे" — these waste the
+first second. START with the most emotionally charged word in the entire script.
 
-  OPEN LOOP (creates curiosity that only watching till end resolves):
-    "क्या आप जानते हैं — [deity] का वो एक secret जो 99% लोग नहीं जानते? अंत तक ज़रूर सुनो।"
-    "[Deity] ने एक बात कही थी जो आपकी पूरी life बदल देगी — सुनते रहिए।"
+The FIRST word must be the deity name OR the most shocking/emotional word.
 
-  BOLD PROMISE (viewer stays to receive the benefit):
-    "अगर आप यह [deity] का message आज सुन लेते हैं — आपकी मुश्किलें खत्म हो जाएंगी।"
-    "यह video देखने के बाद आप कभी हार नहीं मानेंगे — [deity] का वचन है।"
+Use ONE of these 4 proven formulas — keep it under 10 words:
 
-  PATTERN INTERRUPT (shocking or counter-intuitive opening):
-    "[Deity] ने कहा था — जब सब कुछ छिन जाए, तब भी एक चीज़ बची रहती है।"
-    "जो इंसान सबसे ज़्यादा तकलीफ में होता है — [deity] उसके सबसे करीब होते हैं।"
+  SHOCKING TRUTH (state something counter-intuitive immediately):
+    "[Deity] कहते हैं — जो टूट जाता है, वही सबसे तेज़ चमकता है।"
+    "जो सबसे ज़्यादा तकलीफ में है — [Deity] उसके सबसे करीब हैं।"
+    "हार वो नहीं जो गिरे — हार वो है जो उठा नहीं।"
+
+  OPEN LOOP (create a gap only the body can close):
+    "[Deity] का वो एक राज़ — जो 99% लोग नहीं जानते।"
+    "एक बात जो [Deity] ने कही थी — आज तक किसी ने नहीं सुनी।"
+
+  BOLD PROMISE (specific, immediate benefit):
+    "यह 40 seconds सुन लो — [Deity] की कृपा खुद महसूस होगी।"
+    "[Deity] का यह वचन सुन लो — मुश्किल रात आसान हो जाएगी।"
+
+  DIRECT CALL-OUT (speak directly to the viewer's pain):
+    "अगर life में सब कुछ गलत लग रहा है — यह सुनो।"
+    "थक गए हो? रुको — [Deity] का एक message है तुम्हारे लिए।"
 
 HOOK RULES:
-- ALWAYS end the hook with a reason to keep watching (curiosity gap / open loop)
-- NEVER reveal the answer/resolution in the hook — save it for the body or ending
-- Max 2 sentences, max 25 words total for the hook
+- FIRST word = deity name OR most powerful emotional word — no exceptions
+- Max 1 sentence, max 10 words — reads in under 2 seconds
+- NEVER warm up — no "क्या आप जानते हैं", no "आज हम", no "दोस्तों"
+- End on a curiosity gap OR a direct emotional promise — never a full resolution
+- The hook alone should make someone stop scrolling mid-swipe
 
 BODY (3-4 short sentences — deliver on the hook's promise):
 - Divine teaching, story, or blessing connected to real life (paisa, love, health, success)
@@ -171,35 +183,80 @@ LINES 2-4 (unique body — summarise THIS video's specific message):
 
 CTA LINE: "👍 लाइक करें | 🔔 सब्सक्राइब करें | ❤️ शेयर करें अपनों के साथ"
 
-HASHTAG BLOCK — EXACTLY 3-5 hashtags (no more — excess hashtags reduce reach):
-  ⚠️ The FIRST 3 hashtags appear visibly ABOVE the video title — choose them wisely.
-  Order: Most specific → Most broad
-  1. Deity/topic-specific: #Mahadev OR #ShriKrishna OR #JaiHanuman (match the deity)
-  2. Content category: #Bhakti OR #Shorts
-  3. Broad reach: #Spiritual OR #HindiShorts
-  Maximum 5 hashtags total. Never repeat hashtags across videos.
+HASHTAG BLOCK — EXACTLY 4-5 hashtags on the last line (no more — excess reduces reach):
+  ⚠️ The FIRST 3 hashtags appear visibly ABOVE the video title on YouTube — choose carefully.
+  ALWAYS pick from the curated trending list below — these are the top-performing
+  Bhakti/Hindu hashtags driving reach on YouTube Shorts India right now.
+
+  MANDATORY — always include these 2:
+    #shorts        — triggers YouTube Shorts discovery (MUST be first)
+    #bhakti        — top-performing devotional hashtag, highest reach in this niche
+
+  DEITY HASHTAG — pick the ONE that matches this video's deity:
+    Shiva/Mahadev  → #mahadev
+    Krishna        → #krishna
+    Ram            → #jaishriram
+    Hanuman        → #hanuman
+    Durga          → #maadurga
+    Ganesha        → #ganesh
+    Lakshmi        → #mahalakshmi
+    Saraswati      → #saraswati
+    Vishnu         → #vishnu
+
+  OPTIONAL 4th/5th hashtag — pick 1-2 based on content theme (only if space allows):
+    #sanatandharma  — philosophy/values content (fast-growing, high engagement)
+    #hindudharma    — dharmic teaching content
+    #spirituality   — broad spiritual theme
+    #mantra         — if content references a mantra
+    #bhajan         — if content references a bhajan/song
+    #divineblessing — blessing/protection theme
+    #hindushorts    — Hindi Shorts niche reach
+    #motivation     — motivational message (use only if the script is motivational)
+
+  ORDER: #shorts first, then deity hashtag, then #bhakti, then optional ones
+  EXAMPLE: "#shorts #mahadev #bhakti #sanatandharma"
 
 Max 120 words total (description + hashtags combined).
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 TAGS RULES — 8-12 highly specific tags (2026 best practice):
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-IMPORTANT: In 2026, YouTube tags have minimal ranking impact. Their PRIMARY purpose is:
-  1. Catching spelling variations of your deity/topic name
-  2. Long-tail niche phrases that exactly match how your audience searches
-  3. Episode-specific context (NOT generic keywords that apply to every video)
+IMPORTANT: Tags have minimal ranking impact in 2026. Their purpose is spelling variations
+  and long-tail niche phrases. ALWAYS pick from the proven list below — no random generic words.
 
-DO NOT use generic tags like "Motivation", "Viral", "trending", "Status" — they waste space
-  and add no discoverability value.
+DO NOT use: "Motivation", "Viral", "trending", "Status", "HinduGods" — generic = wasted slots.
 
-INCLUDE:
-1. Deity name variations (spelling/transliteration): e.g. "Shiva", "Shiv", "Mahadev", "Bholenath"
-2. Deity + specific topic from THIS video: e.g. "Shiva blessing for success", "Mahadev protection mantra"
-3. Long-tail niche phrases: e.g. "hindi bhakti shorts", "shiv bhakti status video", "hindu devotional short video"
-4. Channel niche anchor: "bhakti shorts hindi", "hindu god shorts"
+PICK 10-12 tags from this high-performing Bhakti tag bank, choosing the most relevant ones
+for THIS video's deity and theme:
 
-Tags must be strings WITHOUT # symbol — YouTube API tags field does not use #.
-Generate 8-12 tags total, all specific to THIS video's deity and theme.
+  DEITY VARIATIONS (include 3-4 for your deity):
+    Shiva  → "shiva", "shiv", "mahadev", "bholenath", "har har mahadev", "lord shiva"
+    Krishna → "krishna", "shri krishna", "radhe krishna", "hare krishna", "lord krishna"
+    Ram    → "ram", "shri ram", "jai shri ram", "ramji", "lord ram", "ramayana"
+    Hanuman → "hanuman", "bajrangbali", "hanuman chalisa", "jai hanuman", "lord hanuman"
+    Durga  → "durga", "maa durga", "navratri", "jai mata di", "sherawali mata"
+    Ganesha → "ganesh", "ganesha", "ganpati", "jai ganesh", "lord ganesha"
+    Lakshmi → "lakshmi", "maa lakshmi", "mahalakshmi", "laxmi", "goddess lakshmi"
+    Saraswati → "saraswati", "maa saraswati", "goddess saraswati", "vasant panchami"
+    Vishnu → "vishnu", "lord vishnu", "narayan", "jai vishnu", "vaishnav"
+
+  NICHE TAGS (include 3-4 that fit this video):
+    "bhakti shorts"           — top-performing niche tag
+    "bhakti status video"     — high search volume
+    "hindi bhakti shorts"     — language+niche combo
+    "hindu devotional shorts" — broad niche
+    "sanatan dharma shorts"   — philosophy niche (growing fast)
+    "spiritual hindi shorts"  — spiritual niche
+    "hindu god shorts"        — deity content niche
+    "bhajan status"           — if bhajan-related content
+    "mantra shorts"           — if mantra-related content
+    "hindu motivation"        — motivational bhakti content
+
+  ALWAYS INCLUDE:
+    "shorts"                  — platform tag (required)
+    "bhakti"                  — top content category tag
+
+Tags must be strings WITHOUT # symbol. Generate 10-12 tags total.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 SEARCH TERMS RULES (used to search Wikimedia, Unsplash, Pexels):
@@ -363,12 +420,14 @@ NO hashtags in the title field — hashtags go in description only.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 SCRIPT RULES — 40-second Hinglish voiceover (same as always):
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Structure: HOOK (5s) → BODY (28s) → ENDING (7s)
+Structure: HOOK (2s) → BODY (31s) → ENDING (7s)
 Total: 90-110 words — mixed script Hinglish (Devanagari for Hindi words, Latin for English words).
-HOOK — CRITICAL (first 3 seconds decide retention):
-Use an open-loop or bold-promise hook that makes the viewer want to watch till the very end.
-  Open loop: "[Deity] का वो एक secret जो 99% लोग नहीं जानते — अंत तक ज़रूर सुनो।"
-  Bold promise: "यह video देखने के बाद आप कभी हार नहीं मानेंगे — [deity] का वचन है।"
+HOOK — CRITICAL (viewer decides in 1.3 seconds — make it count):
+Exactly 1 sentence, max 10 words. Start with the deity name OR the most emotionally charged word.
+NO warmup phrases — go straight to the punch.
+  Shocking truth: "[Deity] कहते हैं — जो टूट जाता है, वही सबसे तेज़ चमकता है।"
+  Open loop:      "[Deity] का वो एक राज़ — जो 99% लोग नहीं जानते।"
+  Direct call-out: "थक गए हो? [Deity] का एक message है तुम्हारे लिए।"
 NEVER reveal the answer in the hook — create curiosity that only watching till end resolves.
 
 BODY: 3-4 short punchy sentences — divine teaching tied to real life (money, health, love, success).

@@ -16,7 +16,7 @@ import json
 import subprocess
 from pathlib import Path
 
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 
 from config import (
     VIDEO_FPS,
@@ -58,6 +58,131 @@ def _resize_image(src: Path, dst: Path) -> None:
     img = Image.open(src).convert("RGB")
     img = img.resize((VIDEO_WIDTH, VIDEO_HEIGHT), Image.LANCZOS)
     img.save(dst, "JPEG", quality=95)
+
+
+# ── Step 1b — Hook text overlay on first frame ────────────────────────────────
+
+def _load_font(size: int) -> ImageFont.FreeTypeFont:
+    """Load Noto Sans Devanagari Bold; fall back to system Devanagari fonts."""
+    from config import ASSETS_DIR
+    candidates = [
+        # 1. Local downloaded font (run scripts/setup_fonts.py once)
+        str(ASSETS_DIR / "fonts" / "NotoSansDevanagari-Bold.ttf"),
+        # 2. Ubuntu / GitHub Actions (fonts-noto-extra apt package)
+        "/usr/share/fonts/truetype/noto/NotoSansDevanagari-Bold.ttf",
+        "/usr/share/fonts/truetype/noto/NotoSansDevanagari[wdth,wght].ttf",
+        # 3. macOS built-in Devanagari fonts (no download needed)
+        "/System/Library/Fonts/Kohinoor.ttc",            # Kohinoor Devanagari Bold
+        "/System/Library/Fonts/Supplemental/ITFDevanagari.ttc",
+        "/System/Library/Fonts/Supplemental/DevanagariMT.ttc",
+        # 4. Generic Latin fallback (Devanagari won't render, but won't crash)
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+    ]
+    for path in candidates:
+        try:
+            return ImageFont.truetype(path, size)
+        except (OSError, Exception):
+            pass
+    return ImageFont.load_default()
+
+
+def _wrap_hook(text: str, max_chars: int = 13) -> list[str]:
+    """Wrap hook text into short lines (Devanagari chars are wide)."""
+    words = text.split()
+    lines, current = [], ""
+    for word in words:
+        test = (current + " " + word).strip() if current else word
+        if len(test) <= max_chars:
+            current = test
+        else:
+            if current:
+                lines.append(current)
+            current = word
+    if current:
+        lines.append(current)
+    return lines[:3]  # max 3 lines to keep it punchy
+
+
+def _add_hook_overlay(img_path: Path, hook_text: str, out: Path) -> None:
+    """
+    Burn the hook sentence onto the first frame as a bold text overlay.
+    Placed in the upper-center area so it's the very first thing viewers read.
+
+    Layout:
+      - Subtle dark tint over the whole image (improves text contrast)
+      - Saffron top accent line
+      - Dark semi-transparent rounded panel (center-top)
+      - White bold Devanagari text with black drop-shadow
+      - Saffron bottom accent line
+    """
+    img = Image.open(img_path).convert("RGBA")
+    w, h = img.size  # 1080 × 1920
+
+    # ── 1. Subtle full-image dark tint ────────────────────────────────────────
+    tint = Image.new("RGBA", (w, h), (0, 0, 0, 90))
+    img = Image.alpha_composite(img, tint)
+
+    draw = ImageDraw.Draw(img)
+
+    font_size = 88
+    font = _load_font(font_size)
+    line_gap = font_size + 20
+
+    lines = _wrap_hook(hook_text)
+    if not lines:
+        img.convert("RGB").save(out, "JPEG", quality=95)
+        return
+
+    # ── 2. Measure text block ─────────────────────────────────────────────────
+    max_text_w = 0
+    line_sizes = []
+    for line in lines:
+        bbox = draw.textbbox((0, 0), line, font=font)
+        lw = bbox[2] - bbox[0]
+        line_sizes.append(lw)
+        max_text_w = max(max_text_w, lw)
+
+    total_text_h = len(lines) * line_gap - (line_gap - font_size)
+    pad_x, pad_y = 52, 32
+    panel_w = min(max_text_w + pad_x * 2, w - 72)
+    panel_h = total_text_h + pad_y * 2 + 12   # +12 for accent lines
+
+    # ── 3. Position: upper-center (~18% from top) ─────────────────────────────
+    panel_x = (w - panel_w) // 2
+    panel_y = int(h * 0.18)
+
+    # ── 4. Draw dark rounded panel ────────────────────────────────────────────
+    panel_rect = [(panel_x, panel_y), (panel_x + panel_w, panel_y + panel_h)]
+    panel_overlay = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    panel_draw = ImageDraw.Draw(panel_overlay)
+    try:
+        panel_draw.rounded_rectangle(panel_rect, radius=20, fill=(10, 10, 10, 200))
+    except AttributeError:
+        panel_draw.rectangle(panel_rect, fill=(10, 10, 10, 200))
+    img = Image.alpha_composite(img, panel_overlay)
+    draw = ImageDraw.Draw(img)
+
+    # ── 5. Saffron accent lines (top + bottom of panel) ───────────────────────
+    draw.rectangle(
+        [(panel_x, panel_y), (panel_x + panel_w, panel_y + 7)],
+        fill=(255, 153, 0),    # saffron
+    )
+    draw.rectangle(
+        [(panel_x, panel_y + panel_h - 7), (panel_x + panel_w, panel_y + panel_h)],
+        fill=(255, 153, 0),
+    )
+
+    # ── 6. Draw text lines ────────────────────────────────────────────────────
+    y = panel_y + pad_y + 4
+    for i, line in enumerate(lines):
+        x = (w - line_sizes[i]) // 2
+        # Black drop-shadow
+        draw.text((x + 3, y + 3), line, font=font, fill=(0, 0, 0, 220))
+        # White text
+        draw.text((x, y), line, font=font, fill=(255, 255, 255, 255))
+        y += line_gap
+
+    img.convert("RGB").save(out, "JPEG", quality=95)
 
 
 # ── Step 2 — Ken Burns clip ───────────────────────────────────────────────────
@@ -165,16 +290,27 @@ def _burn_subtitles(video: Path, subtitle_path: Path, audio: Path, out: Path) ->
     The subtitle file contains 4-word timed chunks with fade+pop animation.
     """
     import shutil
+    from config import ASSETS_DIR
+
     # Copy ASS to work dir with a simple name — FFmpeg resolves it relative to cwd
     safe_ass = video.parent / "subs.ass"
     shutil.copy(subtitle_path, safe_ass)
+
+    # Use local assets/fonts if NotoSansDevanagari-Bold.ttf was downloaded there
+    # (run scripts/setup_fonts.py once to download it).
+    # On GitHub Actions, fonts-noto-extra is installed system-wide so no fontsdir needed.
+    font_file = ASSETS_DIR / "fonts" / "NotoSansDevanagari-Bold.ttf"
+    if font_file.exists():
+        sub_filter = f"subtitles=subs.ass:fontsdir={font_file.parent}"
+    else:
+        sub_filter = "subtitles=subs.ass"  # rely on system fontconfig (GitHub Actions)
 
     _run(
         [
             "ffmpeg", "-y",
             "-i", str(video),
             "-i", str(audio),
-            "-filter_complex", "[0:v]subtitles=subs.ass[v]",
+            "-filter_complex", f"[0:v]{sub_filter}[v]",
             "-map", "[v]",
             "-map", "1:a",
             "-c:v", "libx264", "-preset", "medium", "-crf", "23",
@@ -197,6 +333,7 @@ def create_video(
     bg_music: Path,
     run_id: str,
     video_index: int,
+    hook_text: str = "",
 ) -> Path:
     """
     Full pipeline: images + voiceover + karaoke subtitles + music → final MP4.
@@ -216,9 +353,19 @@ def create_video(
     for i, src in enumerate(image_paths):
         resized = work / f"resized_{i:02d}.jpg"
         _resize_image(src, resized)
+
+        # First frame: burn hook text overlay so viewers see the hook instantly
+        if i == 0 and hook_text:
+            hook_frame = work / "hook_frame.jpg"
+            _add_hook_overlay(resized, hook_text, hook_frame)
+            frame_src = hook_frame
+            print(f"  Hook overlay applied to frame 1: "{hook_text[:40]}…"")
+        else:
+            frame_src = resized
+
         clip = work / f"clip_{i:02d}.mp4"
         print(f"  Ken Burns clip {i + 1}/{len(image_paths)}…")
-        _make_clip(resized, per_img, clip, directions[i])
+        _make_clip(frame_src, per_img, clip, directions[i])
         clip_paths.append(clip)
 
     # ── 3. Concatenate ────────────────────────────────────────────────────────
