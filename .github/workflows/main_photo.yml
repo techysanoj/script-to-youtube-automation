@@ -17,6 +17,9 @@ on:
     - cron: "0 12 * * *"
   workflow_dispatch:
 
+permissions:
+  contents: write   # needed to commit content history back to repo
+
 jobs:
   upload-photo:
     name: Generate & Upload 1 Photo Short
@@ -48,6 +51,25 @@ jobs:
       - name: Install Python dependencies
         run: pip install -r requirements.txt
 
+      - name: Set up Devanagari font for subtitles and thumbnails
+        run: |
+          mkdir -p assets/fonts
+          # Try static bold first, then variable font (newer Ubuntu), then download
+          FONT=$(find /usr/share/fonts -name "NotoSansDevanagari-Bold.ttf" 2>/dev/null | head -1)
+          if [ -z "$FONT" ]; then
+            FONT=$(find /usr/share/fonts -name "NotoSansDevanagari*.ttf" 2>/dev/null | head -1)
+          fi
+          if [ -n "$FONT" ]; then
+            cp "$FONT" assets/fonts/NotoSansDevanagari-Bold.ttf
+            echo "Font copied from: $FONT"
+          else
+            echo "Font not found in system, downloading..."
+            curl -fsSL \
+              "https://github.com/notofonts/devanagari/raw/main/fonts/NotoSansDevanagari/hinted/ttf/NotoSansDevanagari-Bold.ttf" \
+              -o assets/fonts/NotoSansDevanagari-Bold.ttf \
+              || echo "Download failed — falling back to system fontconfig"
+          fi
+
       - name: Write YouTube credentials from secrets
         env:
           YOUTUBE_CLIENT_SECRETS: ${{ secrets.YOUTUBE_CLIENT_SECRETS }}
@@ -64,6 +86,16 @@ jobs:
           VIDEOS_PER_RUN:  "1"
           YOUTUBE_PRIVACY: "public"
         run: python main.py
+
+      - name: Save content history to repo
+        if: always()
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git add content_history_youtube.json || true
+          git diff --staged --quiet || git commit -m "chore: update youtube content history [skip ci]"
+          git pull --rebase origin main || true
+          git push || true
 
       - name: Upload video artifact
         if: always()
