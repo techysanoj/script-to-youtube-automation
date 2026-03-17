@@ -101,6 +101,10 @@ def run_pipeline(video_index: int, stop_after: int = 6) -> dict:
 
         # ── 5. Assemble video ─────────────────────────────────────────────────
         print("\n[5/6] Assembling video (FFmpeg)…")
+
+        # Extract the hook — first sentence of the script — for first-frame overlay
+        hook_text = re.split(r"[।?.!\n]", content["script"])[0].strip()
+
         video_path = assemble_video_from_clips(
             clip_paths=clip_paths,
             voiceover_path=voiceover_path,
@@ -108,6 +112,7 @@ def run_pipeline(video_index: int, stop_after: int = 6) -> dict:
             bg_music=bg_music,
             run_id=run_id,
             video_index=video_index,
+            hook_text=hook_text,
         )
         if stop_after == 5:
             safe_title = re.sub(r"[^\w\s-]", "", content["title"])[:60].strip()

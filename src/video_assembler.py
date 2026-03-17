@@ -15,10 +15,14 @@ import subprocess
 import shutil
 from pathlib import Path
 
+from PIL import Image, ImageDraw, ImageFont
+
 from config import (
     BG_MUSIC_VOLUME,
     OUTPUT_DIR,
     TEMP_DIR,
+    VIDEO_WIDTH,
+    VIDEO_HEIGHT,
 )
 
 
@@ -36,6 +40,125 @@ def _ffprobe_duration(path: Path) -> float:
         capture_output=True, text=True, check=True,
     )
     return float(json.loads(result.stdout)["format"]["duration"])
+
+
+# ── Hook overlay helpers ───────────────────────────────────────────────────────
+
+def _load_font_va(size: int) -> ImageFont.FreeTypeFont:
+    """Load Devanagari font with cross-platform fallbacks."""
+    from config import ASSETS_DIR
+    candidates = [
+        str(ASSETS_DIR / "fonts" / "NotoSansDevanagari-Bold.ttf"),
+        "/usr/share/fonts/truetype/noto/NotoSansDevanagari-Bold.ttf",
+        "/usr/share/fonts/truetype/noto/NotoSansDevanagari[wdth,wght].ttf",
+        "/System/Library/Fonts/Kohinoor.ttc",
+        "/System/Library/Fonts/Supplemental/ITFDevanagari.ttc",
+        "/System/Library/Fonts/Supplemental/DevanagariMT.ttc",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+    ]
+    for path in candidates:
+        try:
+            return ImageFont.truetype(path, size)
+        except (OSError, Exception):
+            pass
+    return ImageFont.load_default()
+
+
+def _wrap_hook_va(text: str, max_chars: int = 13) -> list[str]:
+    """Wrap hook text into short lines."""
+    words = text.split()
+    lines, current = [], ""
+    for word in words:
+        test = (current + " " + word).strip() if current else word
+        if len(test) <= max_chars:
+            current = test
+        else:
+            if current:
+                lines.append(current)
+            current = word
+    if current:
+        lines.append(current)
+    return lines[:3]
+
+
+def _create_hook_png(hook_text: str, out: Path) -> bool:
+    """
+    Create a transparent PNG (1080×1920) with hook text panel.
+    Returns True if PNG was created, False if skipped.
+    """
+    lines = _wrap_hook_va(hook_text)
+    if not lines:
+        return False
+
+    w, h = VIDEO_WIDTH, VIDEO_HEIGHT
+    img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+
+    font_size = 88
+    font = _load_font_va(font_size)
+    line_gap = font_size + 20
+
+    max_text_w = 0
+    line_sizes = []
+    for line in lines:
+        bbox = draw.textbbox((0, 0), line, font=font)
+        lw = bbox[2] - bbox[0]
+        line_sizes.append(lw)
+        max_text_w = max(max_text_w, lw)
+
+    total_text_h = len(lines) * line_gap - (line_gap - font_size)
+    pad_x, pad_y = 52, 32
+    panel_w = min(max_text_w + pad_x * 2, w - 72)
+    panel_h = total_text_h + pad_y * 2 + 12
+
+    panel_x = (w - panel_w) // 2
+    panel_y = int(h * 0.18)
+
+    # Dark semi-transparent panel
+    try:
+        draw.rounded_rectangle(
+            [(panel_x, panel_y), (panel_x + panel_w, panel_y + panel_h)],
+            radius=20, fill=(10, 10, 10, 200),
+        )
+    except AttributeError:
+        draw.rectangle(
+            [(panel_x, panel_y), (panel_x + panel_w, panel_y + panel_h)],
+            fill=(10, 10, 10, 200),
+        )
+
+    # Saffron accent lines
+    draw.rectangle([(panel_x, panel_y), (panel_x + panel_w, panel_y + 7)], fill=(255, 153, 0, 255))
+    draw.rectangle([(panel_x, panel_y + panel_h - 7), (panel_x + panel_w, panel_y + panel_h)], fill=(255, 153, 0, 255))
+
+    # Text with drop-shadow
+    y = panel_y + pad_y + 4
+    for i, line in enumerate(lines):
+        x = (w - line_sizes[i]) // 2
+        draw.text((x + 3, y + 3), line, font=font, fill=(0, 0, 0, 220))
+        draw.text((x, y), line, font=font, fill=(255, 255, 255, 255))
+        y += line_gap
+
+    img.save(out, "PNG")
+    return True
+
+
+def _overlay_hook(video: Path, hook_png: Path, out: Path) -> None:
+    """Overlay hook PNG on the first 3 seconds of the video."""
+    _run(
+        [
+            "ffmpeg", "-y",
+            "-i", str(video),
+            "-i", str(hook_png),
+            "-filter_complex",
+            "[0:v][1:v]overlay=0:0:enable='between(t,0,3)'[v]",
+            "-map", "[v]",
+            "-an",   # drop clip audio — final audio comes from mixed.aac
+            "-c:v", "libx264", "-preset", "veryfast", "-crf", "23",
+            "-pix_fmt", "yuv420p",
+            str(out),
+        ],
+        step="hook-overlay",
+    )
 
 
 # ── Step 1 — concatenate clips ─────────────────────────────────────────────────
@@ -122,6 +245,7 @@ def assemble_video_from_clips(
     bg_music: Path | None,
     run_id: str,
     video_index: int,
+    hook_text: str = "",
 ) -> Path:
     """
     Full assembly pipeline: video clips + voiceover + karaoke subtitles + music → MP4.
@@ -138,6 +262,15 @@ def assemble_video_from_clips(
     print("  Concatenating clips…")
     concat_vid = work / "concat.mp4"
     _concat_clips(clip_paths, concat_vid)
+
+    # ── 1b. Hook overlay on first 3 seconds ───────────────────────────────────
+    if hook_text:
+        hook_png = work / "hook_overlay.png"
+        if _create_hook_png(hook_text, hook_png):
+            hook_vid = work / "concat_hook.mp4"
+            print(f'  Hook overlay applied: "{hook_text[:40]}..."')
+            _overlay_hook(concat_vid, hook_png, hook_vid)
+            concat_vid = hook_vid
 
     # ── 2. Mix audio ──────────────────────────────────────────────────────────
     print("  Mixing audio…")

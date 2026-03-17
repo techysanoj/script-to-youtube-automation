@@ -88,6 +88,10 @@ def run_pipeline(video_index: int, stop_after: int = 6) -> dict:
 
         # ── 5. Assemble video ─────────────────────────────────────────────────
         print("\n[5/6] Assembling video (FFmpeg)…")
+
+        # Extract the hook — first sentence of the script — for frame 1 overlay
+        hook_text = re.split(r"[।?.!\n]", content["script"])[0].strip()
+
         video_path = create_video(
             image_paths=image_paths,
             voiceover_path=voiceover_path,
@@ -95,6 +99,7 @@ def run_pipeline(video_index: int, stop_after: int = 6) -> dict:
             bg_music=bg_music,
             run_id=run_id,
             video_index=video_index,
+            hook_text=hook_text,
         )
         if stop_after == 5:
             # Save video + metadata txt to youtube-videos/ for manual upload

@@ -359,7 +359,7 @@ def create_video(
             hook_frame = work / "hook_frame.jpg"
             _add_hook_overlay(resized, hook_text, hook_frame)
             frame_src = hook_frame
-            print(f"  Hook overlay applied to frame 1: "{hook_text[:40]}…"")
+            print(f'  Hook overlay applied to frame 1: "{hook_text[:40]}..."')
         else:
             frame_src = resized
 
