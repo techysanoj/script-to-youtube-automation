@@ -1,22 +1,18 @@
 name: Daily YouTube Shorts — Video Pipeline
 
 # ─────────────────────────────────────────────────────────────────────────────
-# VIDEO PIPELINE — runs at slots 1, 3, 5  (real Pexels/Pixabay footage)
+# VIDEO PIPELINE — 1 upload/day at peak Indian evening time
 #
-# Slot 1 —  5:00 AM IST = 23:30 UTC (prev day)
-# Slot 3 —  1:30 PM IST = 08:00 UTC
-# Slot 5 —  8:30 PM IST = 15:00 UTC
+# Slot —  8:30 PM IST = 15:00 UTC
 #
-# Total: 3 video shorts per day
+# Reduced from 3×/day to 1×/day so each video gets a full seed-audience test
+# before the next one competes for the same audience pool.
+# Scale back up to 2-3×/day once the channel crosses 1,000 subscribers.
 # ─────────────────────────────────────────────────────────────────────────────
 
 on:
   schedule:
-    # Slot 1:  5:00 AM IST (23:30 UTC)
-    - cron: "30 23 * * *"
-    # Slot 3:  1:30 PM IST (08:00 UTC)
-    - cron: "0 8 * * *"
-    # Slot 5:  8:30 PM IST (15:00 UTC)
+    # 8:30 PM IST (15:00 UTC) — peak Indian viewing hour
     - cron: "0 15 * * *"
   workflow_dispatch:
 
