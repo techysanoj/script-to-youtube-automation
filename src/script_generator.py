@@ -47,11 +47,13 @@ Return ONLY valid JSON — no markdown fences, no extra text — in this exact s
   "title": "Title in pure Hindi Devanagari script (SEO rules below)",
   "script": "40-second Hinglish voiceover script (rules below)",
   "search_terms": [
-    "deity scene1",
-    "deity scene2",
-    "deity scene3",
-    "temple word1",
-    "india word2"
+    "shiva meditation",
+    "shiva devotion",
+    "temple aarti",
+    "navratri crowd",
+    "pilgrimage ganga",
+    "diwali festival",
+    "lotus flower"
   ],
   "description": "YouTube description in Hindi Devanagari (SEO rules below)",
   "tags": ["8-12 highly specific SEO tags — rules below"]
@@ -139,17 +141,38 @@ HOOK RULES:
 - End on a curiosity gap OR a direct emotional promise — never a full resolution
 - The hook alone should make someone stop scrolling mid-swipe
 
-BODY (3-4 short sentences — deliver on the hook's promise):
+BODY (4-5 short sentences — deliver on the hook's promise):
 - Divine teaching, story, or blessing connected to real life (paisa, love, health, success)
 - Max 12 words per sentence — keep it punchy
 - Build the message progressively — each sentence escalates toward the payoff
-- Example: "जब life में अँधेरा हो, [deity] कहते हैं — रुको मत। वो तूफ़ान नहीं, एक test है। और हर test के बाद एक नई शुरुआत होती है।"
 
-ENDING (2-3 sentences — powerful close + CTA):
+MID-VIDEO RE-HOOK — MANDATORY at sentence 2 or 3 (~15-20 seconds in):
+Insert one escalation sentence that re-engages viewers about to swipe. This is a second curiosity
+spike before the final payoff. Use one of these patterns:
+  "लेकिन असली बात तो यह है — [deity] ने यह भी कहा था..."
+  "और यहीं से सब कुछ बदल जाता है..."
+  "यह सुनकर आप हैरान हो जाएंगे — [deity] की यह शक्ति..."
+  "लेकिन [deity] का एक और राज़ है जो बहुत कम लोग जानते हैं..."
+This re-hook is NON-NEGOTIABLE. The viewer who was about to swipe must stop here.
+
+Body example with re-hook:
+  "जब life में अँधेरा हो, [deity] कहते हैं — रुको मत।
+   वो तूफ़ान नहीं, एक test है।
+   लेकिन असली बात तो यह है — [deity] ने यह भी कहा था कि...  ← RE-HOOK HERE
+   हर test के बाद एक नई शुरुआत होती है।"
+
+ENDING (2 sentences — powerful close + unique CTA):
 - First: deliver the final payoff / blessing — make it feel like a divine gift
 - Then: deity battle cry ("जय महादेव!" / "जय श्री राम!" / "जय माता दी!" etc.)
-- ALWAYS end with this CTA line (word-for-word):
-  "Video पसंद आई तो Like करो, Share करो अपनों के साथ, और Subscribe करना मत भूलना। 🙏"
+- UNIQUE CTA (generate fresh for EVERY video — never use the same wording twice):
+  Write 1 sentence where the deity personally speaks to the viewer about liking/subscribing.
+  Connect it to THIS video's specific theme — do NOT use generic phrases.
+  The viewer must feel the deity is asking them directly.
+  CTA examples (use as inspiration, not word-for-word):
+    Shiva blessing video: "अगर महादेव का यह आशीर्वाद आपके दिल को छू गया — तो Like करके इसे अपनों तक पहुँचाओ। 🙏"
+    Krishna wisdom video: "कृष्ण की यह बात अगर आपके काम आई — तो Subscribe करो, ऐसे ही ज्ञान के लिए। 🙏"
+    Hanuman strength video: "बजरंगबली की यह शक्ति अगर आपको मिली — तो Like करके किसी ज़रूरतमंद तक पहुँचाओ। 🙏"
+    Durga protection video: "माँ दुर्गा की यह रक्षा-कवच अगर आपको चाहिए — तो Subscribe करो और channel को अपनों से Share करो। 🙏"
 
 Script language: MIXED-SCRIPT HINGLISH
 - Hindi / Urdu words → write in Devanagari script (देवनागरी)
@@ -158,12 +181,14 @@ Script language: MIXED-SCRIPT HINGLISH
 - The TTS voice is hi-IN-SwaraNeural — it reads Devanagari natively and handles English words naturally
 - Conversational, like a friend talking — natural code-mixing as real Indians speak
 
-MIXED-SCRIPT EXAMPLE (correct format):
-  "क्या आप जानते हैं — Shiva का वो एक secret जो आपकी पूरी life बदल सकता है? अंत तक सुनो।
-   जब life में सब कुछ टूटता लगे, Shiva कहते हैं — यही वो moment है जब असली शक्ति जन्म लेती है।
-   मुश्किलें आपको तोड़ने नहीं, बल्कि और strong बनाने आती हैं।
-   उनका आशीर्वाद हमेशा हमारे साथ है। जय महादेव!
-   Video पसंद आई तो Like करो, Share करो अपनों के साथ, और Subscribe करना मत भूलना। 🙏"
+MIXED-SCRIPT EXAMPLE (correct format — notice the re-hook at sentence 3):
+  "Shiva का वो एक secret — जो 99% लोग नहीं जानते।        ← HOOK
+   जब life में सब कुछ टूटता लगे, Shiva कहते हैं — रुको मत।   ← BODY sentence 1
+   वो तूफ़ान नहीं, एक test है।                               ← BODY sentence 2
+   लेकिन असली बात तो यह है — Shiva का यह राज़ बहुत कम लोग जानते हैं...  ← RE-HOOK (mandatory ~15-20s)
+   हर test के बाद एक नई शुरुआत होती है — यही Shiva का वचन है।
+   उनका आशीर्वाद हमेशा हमारे साथ है। जय महादेव!             ← payoff + battle cry
+   अगर महादेव का यह message आपके दिल को छू गया — तो Like करके अपनों तक पहुँचाओ। 🙏"  ← UNIQUE CTA
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 DESCRIPTION RULES — Hindi Devanagari, YouTube SEO 2026:
@@ -262,33 +287,55 @@ Tags must be strings WITHOUT # symbol. Generate 10-12 tags total.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 SEARCH TERMS RULES (used to search Wikimedia, Unsplash, Pexels):
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Generate EXACTLY 5 search terms. Each term must be EXACTLY 2 English words.
-These will be sent to real stock photo APIs — short, specific terms work best.
+Generate EXACTLY 7 search terms. Each term must be EXACTLY 2 English words.
+These are sent to real stock photo/video APIs — concise, specific terms return better results.
+
+VIDEO NOW USES 12 IMAGES (not 8). Provide 7 varied terms so images look diverse, not repetitive.
 
 STRICT CONTENT RULES — MANDATORY:
 ⚠️ ALL search terms must return ONLY Hindu / Indian spiritual imagery.
-FORBIDDEN — NEVER use any of these words or concepts in search terms:
+FORBIDDEN — NEVER use any of these words in search terms:
   mosque, masjid, minar, minaret, islam, islamic, muslim, quran, namaz, prayer mat,
   crescent, hijab, burqa, arabic, arab, middle east, church, cross, cathedral, bible,
-  christian, jesus, mary, pope, synagogue, jewish, jewish, halal, eid, ramadan.
-If a term could accidentally return mosque/Islamic imagery (e.g. "india architecture"),
-  replace it with a safer Hindu-specific term (e.g. "temple gopuram").
+  christian, jesus, mary, pope, synagogue, jewish, halal, eid, ramadan.
+If a term could accidentally return mixed imagery (e.g. "india architecture"),
+  replace it with a specific Hindu term (e.g. "temple gopuram").
+
+AUTHENTIC IMAGERY PRIORITY — very important:
+The video must look DIFFERENT from 50 other automated bhakti channels using the same stock photos.
+PRIORITISE terms that return REAL devotion scenes over generic deity illustrations:
+  ✅ PREFER (authentic, real scenes):
+    "aarti fire temple"    — real aarti flame with devotees
+    "navratri crowd dance" — real garba/dandiya celebration
+    "pilgrimage ganga"     — real pilgrims at holy river
+    "temple crowd prayer"  — real worshippers at temple
+    "diwali lamps glow"    — real diyas at festival
+    "holi celebration india" — real Holi crowd with colors
+    "india devotion crowd" — real devotion scenes
+  ✅ ALSO GOOD (distinctive visuals):
+    "shiva cave meditation", "krishna forest flute", "hanuman mountain sunset"
+  ⚠️ AVOID over-using (stock clichés every channel uses):
+    "shiva statue", "temple gopuram" alone, "lotus flower" alone — these look identical on every channel.
+    Use at most 1-2 of these as fallback, never as the primary terms.
 
 RULES:
-- 2 words ONLY per term — APIs match better with concise phrases
-- English only — Wikimedia, Unsplash and Pexels are English-indexed
-- Use deity's English name (e.g. "shiva", "krishna", "hanuman") as word 1 for 3 terms
-- Word 2 should show a DIFFERENT visual angle: meditation, temple, festival, portrait, devotion
-- Include 1-2 SAFE Hindu spiritual fallbacks: "temple gopuram", "diwali lamps", "hindu festival",
-  "incense smoke", "lotus flower", "india rangoli", "saffron flowers", "om symbol"
-- NEVER use generic "india" alone or "india architecture" — too likely to surface mixed results
+- 2 words ONLY per term (APIs match better with concise phrases)
+- English only (Wikimedia, Unsplash, Pexels are English-indexed)
+- Terms 1-3: deity-specific (deity name + authentic visual angle)
+- Terms 4-5: authentic real-life devotion scenes (crowd, festival, pilgrimage, aarti)
+- Terms 6-7: safe Hindu spiritual fallbacks (incense, lotus, saffron, diya, om)
 
-GOOD EXAMPLES:
-  Shiva video   → ["shiva meditation", "shiva temple", "shiva statue", "temple gopuram", "diwali lamps"]
-  Krishna video → ["krishna flute", "krishna devotion", "temple worship", "india festival", "lotus flower"]
-  Durga video   → ["durga goddess", "navratri festival", "temple offerings", "india devotion", "diwali lamps"]
-  Hanuman video → ["hanuman devotion", "hanuman temple", "hindu bhakti", "temple gopuram", "saffron flowers"]
-  Ganesh video  → ["ganesha statue", "ganesh festival", "temple offering", "incense smoke", "om symbol"]
+GOOD EXAMPLES (7 terms each):
+  Shiva video   → ["shiva cave meditation", "shiva devotion temple", "shiva statue ancient",
+                    "aarti fire temple", "pilgrimage ganga", "incense smoke", "saffron flowers"]
+  Krishna video → ["krishna flute forest", "krishna devotion temple", "radha krishna art",
+                    "holi celebration india", "temple crowd prayer", "lotus flower", "india rangoli"]
+  Durga video   → ["durga goddess statue", "navratri crowd dance", "durga puja festival",
+                    "aarti fire temple", "india devotion crowd", "diwali lamps glow", "saffron flowers"]
+  Hanuman video → ["hanuman temple prayer", "hanuman statue sunrise", "hanuman devotion crowd",
+                    "temple crowd prayer", "pilgrimage india", "incense smoke", "om symbol"]
+  Ganesh video  → ["ganesha festival crowd", "ganesh idol colorful", "ganesh puja aarti",
+                    "india festival celebration", "temple offering flowers", "incense smoke", "lotus flower"]
 
 Generate completely fresh, unique content each time — different deity, different hook, different theme.
 ALL metadata (title, description, tags) must be contextually consistent with each other and the script."""
@@ -382,11 +429,13 @@ def generate_video_content() -> dict:
         content.get("title", ""),
     )
 
-    # Guarantee exactly 5 search terms (2 images each = 10 slots → first 8 used)
+    # Guarantee exactly 7 search terms (12 images total, ~2 per term)
     terms = content.get("search_terms", [])
-    while len(terms) < 5:
-        terms.append("india temple")
-    content["search_terms"] = terms[:5]
+    fallbacks = ["aarti fire temple", "pilgrimage ganga", "india devotion crowd",
+                 "incense smoke", "lotus flower", "saffron flowers", "diwali lamps glow"]
+    while len(terms) < 7:
+        terms.append(fallbacks[len(terms) % len(fallbacks)])
+    content["search_terms"] = terms[:7]
 
     # Attach festival metadata for logging / upstream use
     if festival:
@@ -417,11 +466,13 @@ Return ONLY valid JSON — no markdown fences, no extra text — in this exact s
   "title": "Internal tracking title — bilingual Hindi+English (rules below)",
   "script": "40-second Hinglish voiceover script (same rules as always)",
   "search_terms": [
-    "deity scene1",
-    "deity scene2",
-    "deity scene3",
-    "temple word1",
-    "india word2"
+    "shiva meditation",
+    "shiva devotion",
+    "temple aarti",
+    "navratri crowd",
+    "pilgrimage ganga",
+    "diwali festival",
+    "lotus flower"
   ],
   "description": "Facebook Reels caption (rules below — this IS the post text)",
   "tags": ["Facebook tags list — rules below"]
@@ -453,12 +504,22 @@ NO warmup phrases — go straight to the punch.
   Direct call-out: "थक गए हो? [Deity] का एक message है तुम्हारे लिए।"
 NEVER reveal the answer in the hook — create curiosity that only watching till end resolves.
 
-BODY: 3-4 short punchy sentences — divine teaching tied to real life (money, health, love, success).
+BODY: 4-5 short punchy sentences — divine teaching tied to real life (money, health, love, success).
 Build progressively — each sentence escalates toward the final payoff.
 
+MID-VIDEO RE-HOOK — MANDATORY at sentence 2 or 3 (~15-20 seconds in):
+Insert one escalation sentence to re-engage viewers about to swipe. Examples:
+  "लेकिन असली बात तो यह है — [deity] ने यह भी कहा था..."
+  "और यहीं से सब कुछ बदल जाता है..."
+  "यह सुनकर आप हैरान हो जाएंगे — [deity] की यह शक्ति..."
+This re-hook is NON-NEGOTIABLE.
+
 ENDING: Powerful close + deity battle cry ("जय महादेव!" / "जय श्री राम!" / "जय माता दी!")
-ALWAYS finish with this CTA line (word-for-word):
-  "Video पसंद आई तो Like करो, Share करो अपनों के साथ, और Subscribe करना मत भूलना। 🙏"
+UNIQUE CTA — generate fresh for EVERY video. The deity personally speaks to the viewer.
+Connect to THIS video's theme — never use generic phrases. Examples:
+  "अगर महादेव का यह आशीर्वाद दिल को छू गया — Like करके अपनों तक पहुँचाओ। 🙏"
+  "कृष्ण की यह बात काम आई — तो Subscribe करो, ऐसे ही ज्ञान के लिए। 🙏"
+  "माँ दुर्गा की रक्षा चाहते हो — तो Subscribe करो और channel Share करो। 🙏"
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 FACEBOOK CAPTION RULES — this is the full post text shown in the feed:
@@ -536,8 +597,8 @@ Examples: ["mahadev blessing", "shiva motivation hindi", "hindu devotional reel"
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 SEARCH TERMS RULES (for stock image APIs — same as always):
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Generate EXACTLY 5 search terms. Each term must be EXACTLY 2 English words.
-Use deity's English name for 3 terms with different visual angles (meditation, temple, festival).
+Generate EXACTLY 7 search terms. Each term must be EXACTLY 2 English words.
+VIDEO USES 12 IMAGES — provide 7 varied terms so images look diverse, not repetitive.
 
 STRICT CONTENT RULES — MANDATORY:
 ⚠️ ALL search terms must return ONLY Hindu / Indian spiritual imagery.
@@ -545,9 +606,14 @@ FORBIDDEN — NEVER use any of these words in search terms:
   mosque, masjid, minar, minaret, islam, islamic, muslim, quran, namaz, crescent,
   hijab, burqa, arabic, arab, middle east, church, cross, cathedral, christian,
   jesus, mary, synagogue, jewish, halal, eid, ramadan.
-Use SAFE Hindu-specific fallbacks only: "temple gopuram", "diwali lamps", "hindu festival",
-  "incense smoke", "lotus flower", "india rangoli", "saffron flowers", "om symbol".
-NEVER use generic "india architecture" — replace with "temple gopuram" or "hindu mandir".
+
+AUTHENTIC IMAGERY PRIORITY:
+  ✅ PREFER real devotion scenes: "aarti fire temple", "navratri crowd dance",
+     "pilgrimage ganga", "temple crowd prayer", "diwali lamps glow", "holi celebration india"
+  ✅ ALSO GOOD: deity + distinctive scene ("shiva cave meditation", "krishna forest flute")
+  ⚠️ AVOID over-using stock clichés: "shiva statue", "lotus flower" alone (max 1-2 as fallback)
+
+Terms 1-3: deity-specific | Terms 4-5: authentic devotion scenes | Terms 6-7: safe fallbacks
 
 Generate completely fresh, unique content each time — different deity, different hook, different theme.
 ALL metadata must be contextually consistent with the script."""

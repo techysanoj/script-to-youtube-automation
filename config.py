@@ -24,12 +24,12 @@ YOUTUBE_PRIVACY = os.getenv("YOUTUBE_PRIVACY", "public")  # public | private | u
 VIDEO_WIDTH = 1080
 VIDEO_HEIGHT = 1920
 VIDEO_FPS = 24
-IMAGE_DURATION = 5.0      # seconds per image clip
+IMAGE_DURATION = 3.0      # seconds per image clip (3s pacing = visual change every 3s for retention)
 BG_MUSIC_VOLUME = 0.35    # 35% — background music under voiceover
 
 # ── Content Settings ──────────────────────────────────────────────────────────
 VIDEOS_PER_RUN = int(os.getenv("VIDEOS_PER_RUN", "2"))
-IMAGES_PER_VIDEO = 8
+IMAGES_PER_VIDEO = 12     # 12 images × 3s = 36s coverage (faster pacing improves completion rate)
 VOICE = "hi-IN-SwaraNeural"  # edge-tts Hindi female voice (free, natural Hinglish)
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
