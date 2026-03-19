@@ -13,6 +13,7 @@ from pathlib import Path
 from google import genai
 from google.genai import types
 from config import GEMINI_API_KEY
+from src.festival_calendar import get_upcoming_festival, build_festival_injection
 
 _client = genai.Client(api_key=GEMINI_API_KEY)
 
@@ -311,11 +312,18 @@ def generate_video_content() -> dict:
         f"seed={random.randint(100_000, 999_999)}"
     )
 
+    # ── Festival awareness ────────────────────────────────────────────────────
+    festival = get_upcoming_festival()
+    festival_block = ""
+    if festival:
+        festival_block = "\n\n" + build_festival_injection(festival, platform="youtube")
+
     user_prompt = (
         f"Session: {session_seed}\n"
         f"Recently used deity+theme combos (DO NOT repeat any of these):\n"
         f"  {avoid_str}\n\n"
         f"Generate completely fresh content with a DIFFERENT deity and DIFFERENT theme now."
+        f"{festival_block}"
     )
 
     response = _client.models.generate_content(
@@ -353,6 +361,13 @@ def generate_video_content() -> dict:
     # Normalise tags to lowercase (e.g. "Durga Protection" → "durga protection")
     content["tags"] = [t.lower() for t in content.get("tags", [])]
 
+    # ── Post-process: ensure festival tags are present ────────────────────────
+    if festival:
+        existing_tags = set(content["tags"])
+        for tag in festival.get("extra_tags_youtube", []):
+            if tag.lower() not in existing_tags:
+                content["tags"].append(tag.lower())
+
     # Normalise hashtags in description to lowercase (e.g. #Mahadev → #mahadev)
     content["description"] = re.sub(
         r"#([A-Za-z0-9_]+)",
@@ -373,9 +388,17 @@ def generate_video_content() -> dict:
         terms.append("india temple")
     content["search_terms"] = terms[:5]
 
+    # Attach festival metadata for logging / upstream use
+    if festival:
+        content["festival"] = festival["name_en"]
+        content["festival_hi"] = festival["name_hi"]
+
     # Save this generation to history so future runs avoid it
     title = content.get("title", "unknown")
-    _save_to_history(history, f"{datetime.datetime.now().strftime('%Y-%m-%d')} | {title}", _YOUTUBE_HISTORY_FILE)
+    history_entry = f"{datetime.datetime.now().strftime('%Y-%m-%d')} | {title}"
+    if festival:
+        history_entry = f"{datetime.datetime.now().strftime('%Y-%m-%d')} | [{festival['name_en']}] {title}"
+    _save_to_history(history, history_entry, _YOUTUBE_HISTORY_FILE)
 
     return content
 
@@ -546,11 +569,18 @@ def generate_facebook_video_content() -> dict:
         f"seed={random.randint(100_000, 999_999)}"
     )
 
+    # ── Festival awareness ────────────────────────────────────────────────────
+    festival = get_upcoming_festival()
+    festival_block = ""
+    if festival:
+        festival_block = "\n\n" + build_festival_injection(festival, platform="facebook")
+
     user_prompt = (
         f"Session: {session_seed}\n"
         f"Recently used deity+theme combos (DO NOT repeat any of these):\n"
         f"  {avoid_str}\n\n"
         f"Generate completely fresh Facebook Reels content with a DIFFERENT deity and DIFFERENT theme now."
+        f"{festival_block}"
     )
 
     response = _client.models.generate_content(
@@ -585,14 +615,29 @@ def generate_facebook_video_content() -> dict:
 
     content["tags"] = [t.lower() for t in content.get("tags", [])]
 
+    # ── Post-process: ensure festival tags are present ────────────────────────
+    if festival:
+        existing_tags = set(content["tags"])
+        for tag in festival.get("extra_tags_youtube", []):
+            if tag.lower() not in existing_tags:
+                content["tags"].append(tag.lower())
+
     # Guarantee exactly 5 search terms
     terms = content.get("search_terms", [])
     while len(terms) < 5:
         terms.append("india temple")
     content["search_terms"] = terms[:5]
 
+    # Attach festival metadata for logging / upstream use
+    if festival:
+        content["festival"] = festival["name_en"]
+        content["festival_hi"] = festival["name_hi"]
+
     # Save to Facebook-only history
     title = content.get("title", "unknown")
-    _save_to_history(history, f"{datetime.datetime.now().strftime('%Y-%m-%d')} | {title}", _FACEBOOK_HISTORY_FILE)
+    history_entry = f"{datetime.datetime.now().strftime('%Y-%m-%d')} | {title}"
+    if festival:
+        history_entry = f"{datetime.datetime.now().strftime('%Y-%m-%d')} | [{festival['name_en']}] {title}"
+    _save_to_history(history, history_entry, _FACEBOOK_HISTORY_FILE)
 
     return content
