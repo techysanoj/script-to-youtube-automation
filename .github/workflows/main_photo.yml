@@ -1,19 +1,15 @@
 name: Daily YouTube Shorts — Photo Pipeline
 
 # ─────────────────────────────────────────────────────────────────────────────
-# PHOTO PIPELINE — 1 upload/day at morning devotional hour
+# PHOTO PIPELINE — 1 upload/day at early morning hour
 #
-# Slot —  9:00 AM IST = 03:30 UTC
-#
-# Reduced from 2×/day to 1×/day so each video gets a full seed-audience test
-# before the next one competes for the same audience pool.
-# Scale back up to 2×/day once the channel crosses 1,000 subscribers.
+# Slot —  5:00 AM IST = 23:30 UTC (previous day)
 # ─────────────────────────────────────────────────────────────────────────────
 
 on:
   schedule:
-    # 9:00 AM IST (03:30 UTC) — morning puja / devotional browsing peak
-    - cron: "30 3 * * *"
+    # 5:00 AM IST (23:30 UTC) — early morning
+    - cron: "30 23 * * *"
   workflow_dispatch:
 
 permissions:
