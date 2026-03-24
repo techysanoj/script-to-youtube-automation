@@ -9,6 +9,7 @@ GEMINI_API_KEY       = os.getenv("GEMINI_API_KEY", "")
 UNSPLASH_ACCESS_KEY  = os.getenv("UNSPLASH_ACCESS_KEY", "")
 PEXELS_API_KEY       = os.getenv("PEXELS_API_KEY", "")
 PIXABAY_API_KEY      = os.getenv("PIXABAY_API_KEY", "")   # free at pixabay.com/api/docs/
+YOUTUBE_API_KEY      = os.getenv("YOUTUBE_API_KEY", "")   # Data API key — for trending music fetch
 
 # ── YouTube OAuth ─────────────────────────────────────────────────────────────
 YOUTUBE_CLIENT_SECRETS_FILE = os.getenv("YOUTUBE_CLIENT_SECRETS_FILE", "client_secrets.json")
@@ -17,7 +18,7 @@ YOUTUBE_SCOPES = [
     "https://www.googleapis.com/auth/youtube.upload",
     "https://www.googleapis.com/auth/youtube.readonly",
 ]
-YOUTUBE_CATEGORY_ID = "22"   # Entertainment
+YOUTUBE_CATEGORY_ID = "27"   # Entertainment
 YOUTUBE_PRIVACY = os.getenv("YOUTUBE_PRIVACY", "public")  # public | private | unlisted
 
 # ── Video Settings ────────────────────────────────────────────────────────────
@@ -25,7 +26,7 @@ VIDEO_WIDTH = 1080
 VIDEO_HEIGHT = 1920
 VIDEO_FPS = 24
 IMAGE_DURATION = 3.0      # seconds per image clip (3s pacing = visual change every 3s for retention)
-BG_MUSIC_VOLUME = 0.35    # 35% — background music under voiceover
+BG_MUSIC_VOLUME = 0.25    # 35% — background music under voiceover
 
 # ── Content Settings ──────────────────────────────────────────────────────────
 VIDEOS_PER_RUN = int(os.getenv("VIDEOS_PER_RUN", "2"))

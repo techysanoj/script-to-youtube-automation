@@ -3,21 +3,25 @@ Audio Manager — provides background music for videos.
 
 Priority order:
   1. Any .mp3 / .wav file in assets/music/  (user-provided real tracks)
-  2. Auto-generated tanpura drone (devotional ambient, created once & cached)
-
-The auto-generated track is a warm Indian tanpura drone with Sa-Pa-Sa tuning —
-perfect for Hindu devotional / motivational Shorts. No downloads, no internet needed.
+  2. Trending YouTube music (auto-downloaded daily — set YOUTUBE_API_KEY in .env)
+  3. Auto-generated tanpura drone (devotional ambient, created once & cached)
 """
 
+import json
 import random
+import re
 import wave
+from datetime import datetime, timezone
 from pathlib import Path
 
 import numpy as np
 
-from config import MUSIC_DIR
+from config import MUSIC_DIR, YOUTUBE_API_KEY
 
 _GENERATED_PATH = MUSIC_DIR / "generated_tanpura_drone.wav"
+_TRENDING_DIR   = MUSIC_DIR / "trending"
+_TRENDING_CACHE = _TRENDING_DIR / "cache.json"
+_CACHE_MAX_AGE_HOURS = 24
 _DURATION_SECS = 210   # 3.5 min — long enough for any video
 _SAMPLE_RATE = 44100
 
@@ -76,12 +80,129 @@ def _generate_tanpura_drone(output: Path) -> None:
     print(f"  Tanpura drone ready → {output.name} ({size_kb} KB)")
 
 
+def _is_cache_fresh() -> bool:
+    if not _TRENDING_CACHE.exists():
+        return False
+    try:
+        data = json.loads(_TRENDING_CACHE.read_text())
+        cached_at = datetime.fromisoformat(data["cached_at"])
+        age_hours = (datetime.now(timezone.utc) - cached_at).total_seconds() / 3600
+        return age_hours < _CACHE_MAX_AGE_HOURS
+    except Exception:
+        return False
+
+
+def _fetch_trending_ids(api_key: str, max_results: int = 5) -> list[dict]:
+    """Fetch top trending music video IDs from YouTube Data API v3."""
+    import requests
+    resp = requests.get(
+        "https://www.googleapis.com/youtube/v3/videos",
+        params={
+            "part": "snippet",
+            "chart": "mostPopular",
+            "videoCategoryId": "10",  # Music category
+            "regionCode": "IN",
+            "maxResults": max_results,
+            "key": api_key,
+        },
+        timeout=10,
+    )
+    resp.raise_for_status()
+    return [
+        {"id": item["id"], "title": item["snippet"]["title"]}
+        for item in resp.json().get("items", [])
+    ]
+
+
+def _download_audio(video_id: str, title: str) -> Path | None:
+    """Download audio as MP3 via yt-dlp. Returns path or None on failure."""
+    try:
+        import yt_dlp
+    except ImportError:
+        print("  yt-dlp not installed — run: pip install yt-dlp")
+        return None
+
+    safe = re.sub(r"[^\w\s-]", "", title)[:50].strip()
+    expected = _TRENDING_DIR / f"{safe}_{video_id}.mp3"
+    if expected.exists():
+        return expected
+
+    ydl_opts = {
+        "format": "bestaudio/best",
+        "outtmpl": str(_TRENDING_DIR / f"{safe}_{video_id}.%(ext)s"),
+        "postprocessors": [{
+            "key": "FFmpegExtractAudio",
+            "preferredcodec": "mp3",
+            "preferredquality": "128",
+        }],
+        "quiet": True,
+        "no_warnings": True,
+    }
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([f"https://www.youtube.com/watch?v={video_id}"])
+        return expected if expected.exists() else None
+    except Exception as e:
+        print(f"  Warning: download failed for '{title[:40]}': {e}")
+        return None
+
+
+def _get_trending_music() -> Path | None:
+    """
+    Fetch trending YouTube music and return a random downloaded track.
+    Results are cached for 24 hours in assets/music/trending/.
+    Requires YOUTUBE_API_KEY in .env.
+    """
+    _TRENDING_DIR.mkdir(parents=True, exist_ok=True)
+
+    # Try loading from cache first
+    cached_paths = []
+    if _is_cache_fresh():
+        try:
+            data = json.loads(_TRENDING_CACHE.read_text())
+            cached_paths = [Path(p) for p in data.get("paths", []) if Path(p).exists()]
+        except Exception:
+            pass
+
+    if not cached_paths:
+        print("  Fetching trending YouTube music (Music chart, IN)…")
+        try:
+            tracks = _fetch_trending_ids(YOUTUBE_API_KEY)
+        except Exception as e:
+            print(f"  Warning: Could not fetch trending music: {e}")
+            return None
+
+        print(f"  Downloading {len(tracks)} trending tracks…")
+        for track in tracks:
+            path = _download_audio(track["id"], track["title"])
+            if path:
+                print(f"  ✓ {track['title'][:55]}")
+                cached_paths.append(path)
+
+        if cached_paths:
+            _TRENDING_CACHE.write_text(json.dumps({
+                "cached_at": datetime.now(timezone.utc).isoformat(),
+                "paths": [str(p) for p in cached_paths],
+            }))
+
+    if not cached_paths:
+        return None
+
+    choice = random.choice(cached_paths)
+    print(f"  Trending background music: {choice.stem[:55]}")
+    return choice
+
+
 def get_background_music() -> Path:
     """
     Return a background music file path.
-    Uses user-provided tracks first; falls back to auto-generated drone.
+
+    Priority:
+      1. User-provided .mp3/.wav in assets/music/
+      2. Trending YouTube music (auto-downloaded, refreshed every 24h, needs YOUTUBE_API_KEY)
+      3. Auto-generated tanpura drone fallback
     """
-    # User-provided tracks take priority (drop .mp3/.wav in assets/music/)
+    # 1. User-provided tracks (drop .mp3/.wav directly in assets/music/)
     user_files = [
         f for f in (list(MUSIC_DIR.glob("*.mp3")) + list(MUSIC_DIR.glob("*.wav")))
         if f.name != _GENERATED_PATH.name
@@ -91,7 +212,15 @@ def get_background_music() -> Path:
         print(f"  Background music: {choice.name}")
         return choice
 
-    # Auto-generate if not already cached
+    # 2. Trending YouTube music
+    if YOUTUBE_API_KEY:
+        trending = _get_trending_music()
+        if trending:
+            return trending
+    else:
+        print("  (Set YOUTUBE_API_KEY in .env to enable trending music)")
+
+    # 3. Auto-generated tanpura drone fallback
     if not _GENERATED_PATH.exists():
         _generate_tanpura_drone(_GENERATED_PATH)
     else:
