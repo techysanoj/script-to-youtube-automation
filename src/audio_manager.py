@@ -149,48 +149,45 @@ def _download_audio(video_id: str, title: str) -> Path | None:
 
 def _get_trending_music() -> Path | None:
     """
-    Fetch trending YouTube music and return a random downloaded track.
-    Results are cached for 24 hours in assets/music/trending/.
+    Fetch top 5 trending music IDs, pick 1 randomly, download only that one.
+    Cached locally for 24h (saves re-download on repeated local runs).
     Requires YOUTUBE_API_KEY in .env.
     """
     _TRENDING_DIR.mkdir(parents=True, exist_ok=True)
 
-    # Try loading from cache first
-    cached_paths = []
+    # Use local cache if fresh (avoids re-download on same machine within 24h)
     if _is_cache_fresh():
         try:
             data = json.loads(_TRENDING_CACHE.read_text())
             cached_paths = [Path(p) for p in data.get("paths", []) if Path(p).exists()]
+            if cached_paths:
+                choice = random.choice(cached_paths)
+                print(f"  Trending music (cached): {choice.stem[:55]}")
+                return choice
         except Exception:
             pass
 
-    if not cached_paths:
-        print("  Fetching trending YouTube music (Music chart, IN)…")
-        try:
-            tracks = _fetch_trending_ids(YOUTUBE_API_KEY)
-        except Exception as e:
-            print(f"  Warning: Could not fetch trending music: {e}")
-            return None
-
-        print(f"  Downloading {len(tracks)} trending tracks…")
-        for track in tracks:
-            path = _download_audio(track["id"], track["title"])
-            if path:
-                print(f"  ✓ {track['title'][:55]}")
-                cached_paths.append(path)
-
-        if cached_paths:
-            _TRENDING_CACHE.write_text(json.dumps({
-                "cached_at": datetime.now(timezone.utc).isoformat(),
-                "paths": [str(p) for p in cached_paths],
-            }))
-
-    if not cached_paths:
+    # Fetch trending IDs, pick 1 at random, download only that one
+    print("  Fetching trending YouTube music (Music chart, IN)…")
+    try:
+        tracks = _fetch_trending_ids(YOUTUBE_API_KEY)
+    except Exception as e:
+        print(f"  Warning: Could not fetch trending music: {e}")
         return None
 
-    choice = random.choice(cached_paths)
-    print(f"  Trending background music: {choice.stem[:55]}")
-    return choice
+    track = random.choice(tracks)
+    print(f"  Selected: {track['title'][:55]}")
+    path = _download_audio(track["id"], track["title"])
+    if not path:
+        return None
+
+    _TRENDING_CACHE.write_text(json.dumps({
+        "cached_at": datetime.now(timezone.utc).isoformat(),
+        "paths": [str(path)],
+    }))
+
+    print(f"  Trending background music ready: {path.stem[:55]}")
+    return path
 
 
 def get_background_music() -> Path:
